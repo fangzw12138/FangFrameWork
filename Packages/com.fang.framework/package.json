@@ -1,6 +1,6 @@
 {
   "name": "com.fang.framework",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "displayName": "Fang Framework",
   "description": "Zero-dependency Unity game framework core definition layer.",
   "unity": "2022.3",

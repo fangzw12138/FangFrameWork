@@ -16,7 +16,7 @@ namespace Fang.Framework.Editor
         private const string DefaultIndexUrl = "https://raw.githubusercontent.com/fangzw12138/FangFrameWork/main/packages.json";
 
         private const float NameColumnWidth = 160f;
-        private const float MetaColumnWidth = 220f;
+        private const float MetaColumnWidth = 200f;
         private const float ActionColumnWidth = 84f;
         private const float RowHeight = 26f;
 
@@ -94,33 +94,26 @@ namespace Fang.Framework.Editor
             rootVisualElement.style.paddingTop = 8f;
             rootVisualElement.style.paddingBottom = 8f;
 
-            _indexField = new TextField("索引地址");
-            _indexField.value = _indexUrl;
-            _indexField.style.flexGrow = 1f;
-            _indexField.RegisterValueChangedCallback(evt =>
-            {
-                _indexUrl = evt.newValue;
-                EditorPrefs.SetString(IndexUrlKey, _indexUrl);
-            });
+            var toolbar = new VisualElement();
+            toolbar.style.flexDirection = FlexDirection.Row;
+            toolbar.style.alignItems = Align.Center;
 
             var refreshButton = new Button(RefreshIndex);
-            refreshButton.text = "刷新索引";
-            refreshButton.style.marginLeft = 6f;
-
-            var urlRow = new VisualElement();
-            urlRow.style.flexDirection = FlexDirection.Row;
-            urlRow.style.alignItems = Align.Center;
-            urlRow.Add(_indexField);
-            urlRow.Add(refreshButton);
-            rootVisualElement.Add(urlRow);
-
-            _coreLabel = new Label();
-            _coreLabel.style.marginTop = 8f;
-            rootVisualElement.Add(_coreLabel);
+            refreshButton.text = "刷新";
 
             _statusLabel = new Label();
+            _statusLabel.style.marginLeft = 8f;
             _statusLabel.style.whiteSpace = WhiteSpace.Normal;
-            rootVisualElement.Add(_statusLabel);
+            _statusLabel.style.color = DimColor;
+
+            toolbar.Add(refreshButton);
+            toolbar.Add(_statusLabel);
+            rootVisualElement.Add(toolbar);
+
+            _coreLabel = new Label();
+            _coreLabel.style.marginTop = 4f;
+            _coreLabel.style.color = DimColor;
+            rootVisualElement.Add(_coreLabel);
 
             _headerRow = BuildHeaderRow();
             rootVisualElement.Add(_headerRow);
@@ -140,9 +133,53 @@ namespace Fang.Framework.Editor
             _emptyLabel.style.color = DimColor;
             rootVisualElement.Add(_emptyLabel);
 
+            rootVisualElement.Add(BuildAdvancedSection());
+
             UpdateCoreLabel();
-            UpdateStatusLabel();
             UpdateListVisibility();
+        }
+
+        private VisualElement BuildAdvancedSection()
+        {
+            var advanced = new Foldout();
+            advanced.text = "索引设置（高级）";
+            advanced.value = false;
+            advanced.style.marginTop = 10f;
+
+            _indexField = new TextField("索引地址");
+            _indexField.value = _indexUrl;
+            _indexField.style.flexGrow = 1f;
+            _indexField.RegisterValueChangedCallback(evt =>
+            {
+                _indexUrl = evt.newValue;
+                EditorPrefs.SetString(IndexUrlKey, _indexUrl);
+            });
+
+            var resetButton = new Button(() =>
+            {
+                _indexField.value = DefaultIndexUrl;
+                RefreshIndex();
+            });
+            resetButton.text = "恢复默认";
+            resetButton.style.marginLeft = 6f;
+            resetButton.style.marginBottom = 2f;
+
+            var row = new VisualElement();
+            row.style.flexDirection = FlexDirection.Row;
+            row.style.alignItems = Align.Center;
+            row.Add(_indexField);
+            row.Add(resetButton);
+
+            var hint = new Label();
+            hint.style.whiteSpace = WhiteSpace.Normal;
+            hint.style.color = DimColor;
+            hint.style.fontSize = 11f;
+            hint.text = "索引是仓库根目录的 packages.json，窗口靠它知道有哪些扩展包、各自在哪个 tag。"
+                + "只有离线验证才需要改成 file:// 本地索引。";
+
+            advanced.Add(row);
+            advanced.Add(hint);
+            return advanced;
         }
 
         private static VisualElement BuildHeaderRow()
@@ -286,11 +323,11 @@ namespace Fang.Framework.Editor
 
             if (string.IsNullOrWhiteSpace(_indexUrl))
             {
-                SetStatus("请先填写索引地址。");
-                return;
+                _indexUrl = DefaultIndexUrl;
+                SetStatus("索引地址为空，已用默认地址。");
             }
 
-            SetStatus("正在拉取索引…");
+            SetStatus("正在拉取扩展包列表…");
 
             if (_indexUrl.StartsWith("file:", StringComparison.OrdinalIgnoreCase))
             {
@@ -325,7 +362,7 @@ namespace Fang.Framework.Editor
 
             if (request.result != UnityWebRequest.Result.Success)
             {
-                SetStatus("索引拉取失败：" + request.error);
+                SetStatus("列表拉取失败：" + request.error + "（可点「刷新」重试）");
             }
             else
             {
@@ -340,7 +377,7 @@ namespace Fang.Framework.Editor
             _index = ExtensionPackageIndex.Parse(text);
             SetStatus(_index == null
                 ? "索引解析失败：不是合法索引文件。"
-                : "索引已更新：" + _index.packages.Length + " 个扩展包。");
+                : "共 " + _index.packages.Length + " 个扩展包。");
             RebuildRows();
         }
 
@@ -401,7 +438,7 @@ namespace Fang.Framework.Editor
                 if (!hasRows)
                 {
                     _emptyLabel.text = _index == null
-                        ? "还没有扩展包列表。点「刷新索引」从上面的索引地址拉取。"
+                        ? "还没有扩展包列表。点「刷新」重试。"
                         : "索引里没有扩展包。";
                 }
             }
@@ -415,7 +452,7 @@ namespace Fang.Framework.Editor
 
         private void UpdateStatusLabel()
         {
-            if (_statusLabel != null)
+            if (_statusLabel != null && !string.IsNullOrEmpty(_installer.Status))
             {
                 _statusLabel.text = _installer.Status;
             }
@@ -437,8 +474,8 @@ namespace Fang.Framework.Editor
             if (_coreLabel != null)
             {
                 _coreLabel.text = _coreInstalled
-                    ? "核心包：已装 " + core.version + "（" + core.source + "）"
-                    : "核心包：未装 —— 扩展包依赖核心包，请先安装核心包。";
+                    ? "核心包 " + core.version + "（" + core.source + "）"
+                    : "核心包：读取中…";
             }
         }
     }

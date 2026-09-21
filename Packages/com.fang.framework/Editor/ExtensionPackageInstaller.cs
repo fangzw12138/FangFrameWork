@@ -20,7 +20,7 @@ namespace Fang.Framework.Editor
 
         public event Action Changed;
 
-        public void RefreshInstalledPackages()
+        public void RefreshInstalledPackages(string completedMessage = null)
         {
             if (IsBusy)
             {
@@ -36,7 +36,7 @@ namespace Fang.Framework.Editor
                     _installed[package.name] = package;
                 }
 
-                Status = "已读取本地包状态。";
+                Status = completedMessage ?? string.Empty;
             });
         }
 
@@ -68,7 +68,7 @@ namespace Fang.Framework.Editor
             BeginPoll(Client.Add(url), () =>
             {
                 AssetDatabase.Refresh();
-                RefreshInstalledPackages();
+                RefreshInstalledPackages("已安装 " + packageName + "。");
             });
         }
 
@@ -83,7 +83,7 @@ namespace Fang.Framework.Editor
             BeginPoll(Client.Remove(packageName), () =>
             {
                 AssetDatabase.Refresh();
-                RefreshInstalledPackages();
+                RefreshInstalledPackages("已卸载 " + packageName + "。");
             });
         }
 

@@ -1,0 +1,26 @@
+{
+  "name": "Fang.Framework.Editor.Tests",
+  "rootNamespace": "Fang.Framework.Editor.Tests",
+  "references": [
+    "Fang.Framework",
+    "Fang.Framework.Editor",
+    "UnityEngine.TestRunner",
+    "UnityEditor.TestRunner"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": true,
+  "precompiledReferences": [
+    "nunit.framework.dll"
+  ],
+  "autoReferenced": false,
+  "defineConstraints": [
+    "UNITY_INCLUDE_TESTS"
+  ],
+  "versionDefines": [],
+  "noEngineReferences": false,
+  "testAssemblies": true
+}

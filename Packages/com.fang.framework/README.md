@@ -33,7 +33,7 @@
 ```json
 {
   "dependencies": {
-    "com.fang.framework": "https://github.com/fangzw12138/FangFrameWork.git?path=/Packages/com.fang.framework#com.fang.framework/v0.4.3"
+    "com.fang.framework": "https://github.com/fangzw12138/FangFrameWork.git?path=/Packages/com.fang.framework#com.fang.framework/v0.5.0"
   }
 }
 ```
@@ -62,7 +62,7 @@
 ```json
 {
   "dependencies": {
-    "com.fang.framework": "https://github.com/fangzw12138/FangFrameWork.git?path=/Packages/com.fang.framework#com.fang.framework/v0.4.3",
+    "com.fang.framework": "https://github.com/fangzw12138/FangFrameWork.git?path=/Packages/com.fang.framework#com.fang.framework/v0.5.0",
     "com.fang.framework.eventbus": "https://github.com/fangzw12138/FangFrameWork.git?path=/Packages/com.fang.framework.eventbus#com.fang.framework.eventbus/v0.1.0"
   }
 }
@@ -82,14 +82,13 @@
 | `ConfigDataSo` | `Runtime/Core/Domain` | ScriptableObject | 只读配置资产基类 |
 | `Data<TConfig>` | `Runtime/Core/Domain` | 纯 C# | 运行时数据唯一真相来源 |
 | `Controller<TConfig, TData>` | `Runtime/Core/Domain` | MonoBehaviour | 逻辑层 |
-| `WorldObject<TController, TData, TConfig>` | `Runtime/Core/Domain` | MonoBehaviour | 表现层 |
 | `Service` | `Runtime/Core` | MonoBehaviour | Scope 管理的长期能力基类 |
 | `Scope` | `Runtime/Core` | MonoBehaviour | 服务表 / 父子树 / 生命周期驱动 / 释放 |
 | `ILifecycle` / `ITickable` / `IFixedTickable` | `Runtime/Core` | 接口 | 初始化与销毁、每帧、固定帧 |
 
-依赖方向单向：`WorldObject → Controller → Data`。`Controller` 不认识 `WorldObject`。
+依赖方向单向：`Controller → Data`。`Controller` 不认识表现层。
 
-**`Scope` / `Service` / `Controller` / `WorldObject` 都是 MonoBehaviour；`Data<TConfig>` 是纯 C#，`ConfigDataSo` 是 ScriptableObject。**
+**`Scope` / `Service` / `Controller` 都是 MonoBehaviour；`Data<TConfig>` 是纯 C#，`ConfigDataSo` 是 ScriptableObject。核心包不提供表现层基类**：视觉脚本 `XxxVisual` 是领域侧的普通 MonoBehaviour，写法见 `Documentation~/表现层规范.md`。
 
 `Scope` 把服务托管在自己的子物体 `Services` 下（`AddService<T>()` 建物体 + `AddComponent<T>()`）。框架不提供宿主 MonoBehaviour，也不写 `Awake` / `Update` / `OnDestroy` —— 使用方自己写一个，调 `Scope.OnInit` / `Scope.Tick` / `Scope.FixedTick` / `Scope.OnDispose`。框架不销毁任何 GameObject。
 
@@ -97,6 +96,7 @@
 
 - `Documentation~/架构总览.md`
 - `Documentation~/快速开始.md`
+- `Documentation~/表现层规范.md`
 - `Documentation~/扩展包分发.md`
 - `Documentation~/目录规范.md`
 - `Documentation~/编码规范.md`

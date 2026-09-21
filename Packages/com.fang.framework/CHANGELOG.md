@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.5.0] - 2026-09-21
+
+### Removed
+
+- **`WorldObject<TController, TData, TConfig>` 删除**（破坏性变更）：核心包不再提供表现层基类。载体职责在 0.3.0 已随 `Controller` 改回 MonoBehaviour 而失效，之后 WO 只剩「持有 `Controller` + 转发只读 `Data` / `Config`」，而 `Controller.Data` 本来就是 `public` 只读属性、`Inject(Scope)` 对表现层没有调用方 —— 零推测性 API 下没有保留理由。核心包 Domain 从四件套变三件套：`ConfigDataSo` / `Data<TConfig>` / `Controller<TConfig, TData>`。
+- 契约测试里的全部 WO 断言：`TestWorldObject`、`WorldObject_constraints_are_correct`、`WorldObject_routes_Data_and_Config_without_backing_fields`、`WorldObject_Initialize_rejects_null`、`Controller_has_no_reference_to_WorldObject`，以及辅助方法 `AssertNoWorldObjectReference` / `IsWorldObjectType`。
+- 示例里的空类 `HeroWorldObject`。
+
+### Added
+
+- `Documentation~/表现层规范.md`：删掉 WO 之后表现层怎么写 —— 为什么没有基类、表现层三件套（视觉脚本 `XxxVisual` / 视图句柄 `XxxIWO` / 挂载点约定）、生命周期与销毁（管理服务创建 + 登记 + 释放、从不 `Destroy`；销毁归使用方）、命名与目录、老工程实例、禁止事项。
+
+### Changed
+
+- 示例 `HeroService` → `HeroManagerService`：职责为「创建 + 登记 + 释放」，不 `Destroy`；创建入口 `CreateHero(HeroConfigDataSo)` 由 `SceneScope` 调用（配置由场景层传入）。
+- 示例新增 `HeroVisual`（视觉脚本样板），由 `HeroController.OnInit()` 自己 `AddComponent` 并 `Initialize(this)`；`HeroController` 补 `OnInit()` / `OnDispose()`。
+- `Controller` 双泛型理由澄清：`TData : Data<TConfig>` 这条约束本身就必须两个参数才表达得出来，与表现层无关 —— `架构总览.md` §四 原文把它归因于 WO 的 `where` 约束，是错的。
+- 文档去 WO：`架构总览.md`（分层表、依赖方向整节重写、§四、Scope 语义表）、`快速开始.md`、`编码规范.md`（5.2 / 5.3 / 5.4 / 5.5、MonoBehaviour 列表）、`目录规范.md`、`AI约束.md`、`README.md`、`package.json` 示例描述、eventbus `事件总线.md`。
+- `AI约束` 第 8 条依赖方向改为 `Controller → Data`（`Controller` 不得引用表现层）；第 12 条归属表去 WO；第 13 条补「Unity 接触面落在视觉脚本上」。
+- `编码规范` 与 `AI约束` 的注释规则放宽为「允许一句话的职责 / 非标准写法备注，禁止理由型长注释」，与示例里的两条备注对齐。
+- 核心包版本 `0.4.3` → `0.5.0`。
+
 ## [0.4.3] - 2026-09-21
 
 ### Fixed

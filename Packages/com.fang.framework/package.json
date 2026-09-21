@@ -1,6 +1,6 @@
 {
   "name": "com.fang.framework",
-  "version": "0.4.3",
+  "version": "0.5.0",
   "displayName": "Fang Framework",
   "description": "Zero-dependency Unity game framework core definition layer.",
   "unity": "2022.3",
@@ -17,7 +17,7 @@
   "samples": [
     {
       "displayName": "Minimal Sample",
-      "description": "App / Game / Scene Scope 与四件套（Config / Data / Controller / WorldObject）的最小可运行范式。",
+      "description": "App / Game / Scene Scope 与三件套（Config / Data / Controller）+ 视觉脚本的最小可运行范式。",
       "path": "Samples~/MinimalSample"
     }
   ]

@@ -23,10 +23,6 @@ namespace Fang.Framework.Tests
         public Scope InjectedScope => Scope;
     }
 
-    internal sealed class TestWorldObject : WorldObject<TestController, TestData, TestConfigDataSo>
-    {
-    }
-
     public class DomainContractTests
     {
         private const BindingFlags DeclaredAll =
@@ -44,7 +40,6 @@ namespace Fang.Framework.Tests
             Assert.IsTrue(typeof(ConfigDataSo).IsAbstract);
             Assert.IsTrue(typeof(Data<>).IsAbstract);
             Assert.IsTrue(typeof(Controller<,>).IsAbstract);
-            Assert.IsTrue(typeof(WorldObject<,,>).IsAbstract);
             Assert.IsTrue(typeof(Service).IsAbstract);
             Assert.IsTrue(typeof(Scope).IsAbstract);
         }
@@ -52,7 +47,7 @@ namespace Fang.Framework.Tests
         [Test]
         public void Mono_types_and_pure_types_are_split_as_agreed()
         {
-            foreach (var type in new[] { typeof(Scope), typeof(Service), typeof(Controller<,>), typeof(WorldObject<,,>) })
+            foreach (var type in new[] { typeof(Scope), typeof(Service), typeof(Controller<,>) })
             {
                 Assert.IsTrue(typeof(MonoBehaviour).IsAssignableFrom(type), $"{type.Name} must derive from MonoBehaviour.");
             }
@@ -202,29 +197,6 @@ namespace Fang.Framework.Tests
         }
 
         [Test]
-        public void WorldObject_constraints_are_correct()
-        {
-            var type = typeof(WorldObject<,,>);
-            var parameters = type.GetGenericArguments();
-
-            Assert.AreEqual(3, parameters.Length);
-            Assert.AreEqual(typeof(ConfigDataSo), parameters[2].BaseType);
-
-            var dataConstraint = parameters[1].BaseType;
-            Assert.AreEqual(typeof(Data<>), dataConstraint.GetGenericTypeDefinition());
-            Assert.AreEqual(parameters[2].Name, dataConstraint.GetGenericArguments()[0].Name);
-
-            var controllerConstraint = parameters[0].BaseType;
-            Assert.AreEqual(typeof(Controller<,>), controllerConstraint.GetGenericTypeDefinition());
-
-            var controllerArguments = controllerConstraint.GetGenericArguments();
-            Assert.AreEqual(parameters[2].Name, controllerArguments[0].Name);
-            Assert.AreEqual(parameters[1].Name, controllerArguments[1].Name);
-
-            Assert.IsTrue(typeof(IInjectable).IsAssignableFrom(type));
-        }
-
-        [Test]
         public void Package_has_no_non_generic_Data_type_and_no_IData_interface()
         {
             foreach (var type in GetLoadableTypes(typeof(ConfigDataSo).Assembly))
@@ -354,50 +326,6 @@ namespace Fang.Framework.Tests
         }
 
         [Test]
-        public void Controller_has_no_reference_to_WorldObject()
-        {
-            AssertNoWorldObjectReference(typeof(Controller<,>));
-            AssertNoWorldObjectReference(typeof(TestController));
-        }
-
-        [Test]
-        public void WorldObject_routes_Data_and_Config_without_backing_fields()
-        {
-            var type = typeof(WorldObject<,,>);
-            const BindingFlags flags = BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly;
-
-            foreach (var name in new[] { "Controller", "Data", "Config" })
-            {
-                var property = type.GetProperty(name, flags);
-                Assert.IsNotNull(property, $"WorldObject<,,>.{name} is missing.");
-                Assert.IsTrue(property.CanRead);
-                if (property.SetMethod != null)
-                {
-                    Assert.IsFalse(property.SetMethod.IsPublic, $"WorldObject<,,>.{name} must not be publicly writable.");
-                }
-            }
-
-            var fields = type.GetFields(DeclaredAll);
-            Assert.AreEqual(1, fields.Length, "WorldObject<,,> must hold exactly one instance field.");
-            StringAssert.Contains("Controller", fields[0].Name);
-        }
-
-        [Test]
-        public void WorldObject_Initialize_rejects_null()
-        {
-            var host = new GameObject("WorldObjectContractHost");
-            try
-            {
-                var worldObject = host.AddComponent<TestWorldObject>();
-                Assert.Throws<ArgumentNullException>(() => { worldObject.Initialize(null); });
-            }
-            finally
-            {
-                UnityEngine.Object.DestroyImmediate(host);
-            }
-        }
-
-        [Test]
         public void ConfigDataSo_declares_no_member_named_Name()
         {
             var members = typeof(ConfigDataSo).GetMembers(DeclaredAll);
@@ -458,57 +386,6 @@ namespace Fang.Framework.Tests
 
             Assert.IsNotNull(method, $"{type.Name}.{name} is missing.");
             Assert.AreEqual(isPublic, method.IsPublic, $"{type.Name}.{name} accessibility is wrong.");
-        }
-
-        private static void AssertNoWorldObjectReference(Type type)
-        {
-            foreach (var field in type.GetFields(DeclaredAll))
-            {
-                Assert.IsFalse(IsWorldObjectType(field.FieldType), $"{type.Name}.{field.Name} references WorldObject.");
-            }
-
-            foreach (var property in type.GetProperties(DeclaredAll))
-            {
-                Assert.IsFalse(IsWorldObjectType(property.PropertyType), $"{type.Name}.{property.Name} references WorldObject.");
-            }
-
-            foreach (var method in type.GetMethods(DeclaredAll))
-            {
-                Assert.IsFalse(IsWorldObjectType(method.ReturnType), $"{type.Name}.{method.Name} references WorldObject.");
-                foreach (var parameter in method.GetParameters())
-                {
-                    Assert.IsFalse(IsWorldObjectType(parameter.ParameterType), $"{type.Name}.{method.Name} references WorldObject.");
-                }
-            }
-
-            foreach (var constructor in type.GetConstructors(DeclaredAll))
-            {
-                foreach (var parameter in constructor.GetParameters())
-                {
-                    Assert.IsFalse(IsWorldObjectType(parameter.ParameterType), $"{type.Name} constructor references WorldObject.");
-                }
-            }
-        }
-
-        private static bool IsWorldObjectType(Type type)
-        {
-            if (type.IsGenericParameter)
-            {
-                return false;
-            }
-
-            var current = type;
-            while (current != null)
-            {
-                if (current.IsGenericType && current.GetGenericTypeDefinition() == typeof(WorldObject<,,>))
-                {
-                    return true;
-                }
-
-                current = current.BaseType;
-            }
-
-            return false;
         }
 
         private static IEnumerable<Type> GetLoadableTypes(Assembly assembly)

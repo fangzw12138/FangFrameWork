@@ -1,0 +1,21 @@
+{
+  "repository": "https://github.com/fangzw12138/FangFrameWork.git",
+  "core": {
+    "name": "com.fang.framework",
+    "displayName": "Fang Framework",
+    "path": "/Packages/com.fang.framework",
+    "version": "0.4.0",
+    "tag": "com.fang.framework/v0.4.0"
+  },
+  "packages": [
+    {
+      "name": "com.fang.framework.eventbus",
+      "displayName": "Event Bus",
+      "description": "类型安全发布订阅。",
+      "path": "/Packages/com.fang.framework.eventbus",
+      "version": "0.1.0",
+      "tag": "com.fang.framework.eventbus/v0.1.0",
+      "unity": "2022.3"
+    }
+  ]
+}

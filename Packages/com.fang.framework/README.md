@@ -28,6 +28,53 @@
 
 `Runtime/Fang.Framework.asmdef` 的 `autoReferenced` 为 `true`，因此 `Assets/` 下的预定义程序集（`Assembly-CSharp`）可直接 `using Fang.Framework;`，无需手工添加程序集引用。
 
+从 git URL 安装：
+
+```json
+{
+  "dependencies": {
+    "com.fang.framework": "https://github.com/fangzw12138/FangFrameWork.git?path=/Packages/com.fang.framework#com.fang.framework/v0.4.0"
+  }
+}
+```
+
+需要本机 git CLI。Unity **不检测 git 依赖更新**，升级要改 URL 里的 tag。
+
+## 扩展包
+
+扩展包与核心包同仓（`Packages/com.fang.framework.xxx/`），走 git URL + `?path=` + 每包独立 tag 分发。**依赖只有单向：扩展包引用核心包，核心包永不引用扩展包。**
+
+| 扩展包 | 内容 | 状态 |
+| --- | --- | --- |
+| `com.fang.framework.eventbus` | 类型安全发布订阅 | 0.1.0 |
+| `com.fang.framework.objectpool` | 对象池 | 待做 |
+| `com.fang.framework.serialization` | 序列化抽象（格式可插拔） | 待做 |
+| `com.fang.framework.saveload` | 存档驱动：槽位、分段、区块文件、原子写 | 待做 |
+
+### 装扩展包
+
+**方式一：安装窗口**（推荐）
+
+`Tools/Fang Framework/Extension Packages` → 刷新索引 → 点「安装」。窗口会比对索引版本与本地版本，给出安装 / 更新 / 卸载按钮，并在核心包未装时禁用按钮。
+
+**方式二：手写 `Packages/manifest.json`**
+
+```json
+{
+  "dependencies": {
+    "com.fang.framework": "https://github.com/fangzw12138/FangFrameWork.git?path=/Packages/com.fang.framework#com.fang.framework/v0.4.0",
+    "com.fang.framework.eventbus": "https://github.com/fangzw12138/FangFrameWork.git?path=/Packages/com.fang.framework.eventbus#com.fang.framework.eventbus/v0.1.0"
+  }
+}
+```
+
+两个决定性事实（详见 `Documentation~/扩展包分发.md`）：
+
+1. **Unity 不检测 git 依赖更新** —— git 依赖解析后锁进 `packages-lock.json`，升级只能重新 `Client.Add` 一个新 tag。更新检测由安装窗口自己做。
+2. **UPM 不支持包内声明 git URL 依赖** —— 所以扩展包的 `dependencies` 是空对象，依赖靠 asmdef 引用 + 窗口前置检查 + 文档声明落地。
+
+扩展包索引是仓库根 `packages.json`，用 Unity 自带 `JsonUtility` 解析，零第三方依赖。
+
 ## 内容
 
 | 类型 | 位置 | 形态 | 说明 |
@@ -50,11 +97,20 @@
 
 - `Documentation~/架构总览.md`
 - `Documentation~/快速开始.md`
+- `Documentation~/扩展包分发.md`
 - `Documentation~/目录规范.md`
 - `Documentation~/编码规范.md`
 - `Documentation~/AI约束.md`
 
 `Documentation~` 目录名带 `~` 后缀，不参与 Unity 导入。
+
+## Editor
+
+| 入口 | 说明 |
+| --- | --- |
+| `Tools/Fang Framework/Extension Packages` | 扩展包索引与安装窗口：拉索引、比对版本、装 / 更新 / 卸 |
+
+程序集 `Fang.Framework.Editor`。索引解析（`ExtensionPackageIndex`）与安装状态机（`ExtensionPackageInstaller`）是纯逻辑、可单测；只有窗口（`ExtensionPackagesWindow`）接触 UI 与网络。
 
 ## 许可证
 

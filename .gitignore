@@ -1,4 +1,4 @@
-# 本仓库只跟踪框架包 Packages/com.fang.framework。
+# 本仓库只跟踪框架包与扩展包（Packages/com.fang.framework、Packages/com.fang.framework.*）。
 # 需要把整个 Unity 工程纳入版本管理时，删掉下面「工程其它内容」一节即可。
 
 # ---------------------------------------------------------------------------
@@ -8,6 +8,7 @@
 /ProjectSettings/
 /Packages/*
 !/Packages/com.fang.framework/
+!/Packages/com.fang.framework.*/
 
 # ---------------------------------------------------------------------------
 # Unity 生成物

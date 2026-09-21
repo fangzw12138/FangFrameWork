@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.4.0] - 2026-09-21
+
+### Added
+
+- **扩展包分发机制**：扩展包与核心包同仓，走 git URL + `?path=` + 每包独立 tag；索引文件放仓库根 `packages.json`，用 Unity 自带 `JsonUtility` 解析（零第三方依赖）。
+- **`ExtensionPackageIndex`**（`Editor`，纯逻辑）：索引 DTO、`Parse` / `NormalizeRepository` / `BuildInstallUrl` / `IsNewer` / `ResolveState`。
+- **`ExtensionPackageInstaller`**（`Editor`，纯逻辑）：`Client.List` / `Add` / `Remove` 的 `EditorApplication.update` 轮询状态机，暴露 `IsBusy` / `Status` / `Changed`。
+- **`ExtensionPackagesWindow`**（`Editor`）：UI Toolkit 纯 C# 建树（不引 UXML / USS），菜单 `Tools/Fang Framework/Extension Packages`；索引地址存 `EditorPrefs`，`https://` 走 `UnityWebRequest`、`file://` 读本地文件（离线验证用）；核心包未装时禁用全部安装按钮。
+- EditMode 测试 `Tests/Editor/ExtensionPackageIndexTests.cs`：解析 / 仓库地址归一 / 安装 URL 拼装 / 语义化版本比较 / 状态判定。
+- `Documentation~/扩展包分发.md`；`目录规范.md` / `架构总览.md` / `快速开始.md` / `README.md` 同步。
+
+### Changed
+
+- 核心包版本 `0.3.0` → `0.4.0`。
+- `package.json` 的 `dependencies` 仍为空对象；核心包不引用任何扩展包。
+
+### Notes
+
+- 扩展包**不由核心包编译**：`Fang.Framework.Editor` 只做索引与安装编排，不引用任何扩展包代码。
+- 第一个扩展包 `com.fang.framework.eventbus` 0.1.0（类型安全发布订阅）与本版本同批发布，见 `Packages/com.fang.framework.eventbus/CHANGELOG.md`。
+
 ## [0.3.0] - 2026-09-21
 
 ### Changed

@@ -14,11 +14,13 @@
 8. **依赖方向单向：`WorldObject → Controller → Data`。** `Controller` 类型上不得出现任何指向 `WorldObject` 的成员。
 9. **语言级别锁定 C# 9。** 禁用文件级 namespace、`global using`、`record struct`、`required` 成员、原始字符串字面量。
 10. **不使用 Unity 6 独有 API。**
-11. **零反射。** 不缓存构造函数、不按类型动态构造、不做反射注入。服务一律 `new T()`（`where T : Service, new()`），依赖一律显式 `Scope.GetService<T>()`。
-12. **框架核心零 MonoBehaviour（`WorldObject` 除外）。** `Scope` / `Service` / `Controller` 必须是纯 C# 类；Unity 接触面（`new GameObject`、`Instantiate`、`AudioSource`、协程、`Update`）全部由使用方自己写的 MonoBehaviour 桥接。框架不提供宿主 MonoBehaviour。
-13. **`Scope` 没有就绪门槛。** 不重新引入 `Build()` / `Register()` / `Resolve()` / 自定义异常类型。`AddService` / `RemoveService` 随时可用。
+11. **零反射。** 不缓存构造函数、不按类型动态构造、不做反射注入。服务一律 `AddComponent<T>()`（`where T : Service`），依赖一律显式 `Scope.GetService<T>()`。
+12. **MonoBehaviour 的归属是固定的。** `Scope` / `Service` / `Controller` / `WorldObject` 是 MonoBehaviour；`Data<TConfig>` 是纯 C# 类，`ConfigDataSo` 是 ScriptableObject。不得把 `Data` 改成 MonoBehaviour，也不得把 `Scope` / `Service` / `Controller` 改回纯 C#。
+13. **`Scope` / `Service` / `Controller` 不写 Unity 消息方法。** 不出现 `Awake` / `Start` / `Update` / `FixedUpdate` / `LateUpdate` / `OnEnable` / `OnDisable` / `OnDestroy`。生命周期只走 `ILifecycle` / `ITickable` / `IFixedTickable`，由使用方显式调 `Scope.OnInit` / `Tick` / `FixedTick` / `OnDispose`。框架不抢 Unity 回调，也不提供宿主 MonoBehaviour。
+14. **框架不销毁 GameObject。** `RemoveService<T>()` 与 `OnDispose()` 只做注销与钩子回调；服务物体与子 Scope 物体留给使用方或 Unity 层级回收。不写 `DestroyObject` 这类辅助方法。
+15. **`Scope` 有 `IsInitialized` 状态，但没有就绪门槛。** 不重新引入 `Build()` / `Register()` / `Resolve()` / 自定义异常类型。`IsInitialized` 只作状态查询，`AddService` / `RemoveService` / `GetService` 都不检查它。
 
-以上第 3、7、8、12 条由 `Tests/Runtime/DomainContractTests.cs` 反射守住；改动核心类型后必须重跑测试。
+以上第 3、7、8、12 条由 `Tests/Runtime/DomainContractTests.cs` 反射守住；第 13、15 条同样有反射契约（不声明 Unity 消息方法、成员面不含 `Dispose` / `IsDisposed`）；改动核心类型后必须重跑测试。
 
 ## 二、Data 写入规则
 
@@ -69,6 +71,7 @@ Data 的修改方法必然是 `public`，WO 拿到 Data 实例就能调，**类�
 2. 新增成员是否有当前调用方；没有则不加。
 3. 是否触碰核心层的序列化 / 存档边界；触碰则说明归属错了，应落在扩展包。
 4. 是否引入第三方 `using`；引入则说明依赖错了。
+5. 新加的类型是 MonoBehaviour 还是纯 C#；若与第 12 条的归属表冲突，说明设计错了。
 
 ## 四、改动后的验证
 
@@ -83,3 +86,4 @@ Data 的修改方法必然是 `public`，WO 拿到 Data 实例就能调，**类�
 - 不要在核心包里加 Editor 工具；Editor 工具走 `Fang.Framework.Editor` 程序集。
 - 不要修改 `Documentation~/` 之外的地方去记录设计理由。
 - 不要在测试程序集里引用 `Assets/` 下的内容（沙盒不进包，引用会导致拆包后测试编译失败）。
+- 不要在 `Scope` / `Service` / `Controller` 里写 Unity 消息方法，也不要让框架代劳销毁物体。

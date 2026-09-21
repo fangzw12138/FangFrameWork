@@ -19,7 +19,7 @@
 | 引擎 | Unity 2022.3+ / 团结引擎 2022.3+ |
 | 语言 | C# 9（不使用文件级 namespace、`global using`、`record struct`、`required`、原始字符串字面量） |
 | 依赖 | 无。`package.json` 的 `dependencies` 为空对象 |
-| 反射 | 零反射。服务一律 `new T()`，依赖一律显式 `Scope.GetService<T>()` |
+| 反射 | 零反射。服务一律 `AddComponent<T>()`，依赖一律显式 `Scope.GetService<T>()` |
 | 线程 | 主线程。`Scope` 不保证线程安全 |
 
 ## 安装
@@ -34,15 +34,17 @@
 | --- | --- | --- | --- |
 | `ConfigDataSo` | `Runtime/Core/Domain` | ScriptableObject | 只读配置资产基类 |
 | `Data<TConfig>` | `Runtime/Core/Domain` | 纯 C# | 运行时数据唯一真相来源 |
-| `Controller<TConfig, TData>` | `Runtime/Core/Domain` | 纯 C# | 逻辑层 |
+| `Controller<TConfig, TData>` | `Runtime/Core/Domain` | MonoBehaviour | 逻辑层 |
 | `WorldObject<TController, TData, TConfig>` | `Runtime/Core/Domain` | MonoBehaviour | 表现层 |
-| `Service` | `Runtime/Core` | 纯 C# | Scope 管理的长期能力基类 |
-| `Scope` | `Runtime/Core` | 纯 C# | 服务表 / 父子树 / 生命周期驱动 / 释放 |
+| `Service` | `Runtime/Core` | MonoBehaviour | Scope 管理的长期能力基类 |
+| `Scope` | `Runtime/Core` | MonoBehaviour | 服务表 / 父子树 / 生命周期驱动 / 释放 |
 | `ILifecycle` / `ITickable` / `IFixedTickable` | `Runtime/Core` | 接口 | 初始化与销毁、每帧、固定帧 |
 
 依赖方向单向：`WorldObject → Controller → Data`。`Controller` 不认识 `WorldObject`。
 
-**框架核心零 MonoBehaviour，`WorldObject` 是唯一例外。** 框架不提供宿主 MonoBehaviour —— 使用方自己写一个，调 `Scope.Tick` / `Scope.FixedTick` / `Scope.Dispose`。
+**`Scope` / `Service` / `Controller` / `WorldObject` 都是 MonoBehaviour；`Data<TConfig>` 是纯 C#，`ConfigDataSo` 是 ScriptableObject。**
+
+`Scope` 把服务托管在自己的子物体 `Services` 下（`AddService<T>()` 建物体 + `AddComponent<T>()`）。框架不提供宿主 MonoBehaviour，也不写 `Awake` / `Update` / `OnDestroy` —— 使用方自己写一个，调 `Scope.OnInit` / `Scope.Tick` / `Scope.FixedTick` / `Scope.OnDispose`。框架不销毁任何 GameObject。
 
 ## 文档
 

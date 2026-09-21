@@ -32,6 +32,12 @@ namespace Fang.Framework.Tests
         private const BindingFlags DeclaredAll =
             BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly;
 
+        [TearDown]
+        public void TearDown()
+        {
+            ProbeScope.DestroyAll();
+        }
+
         [Test]
         public void Domain_types_service_and_scope_are_abstract()
         {
@@ -44,26 +50,23 @@ namespace Fang.Framework.Tests
         }
 
         [Test]
-        public void Only_WorldObject_stays_on_the_unity_side()
+        public void Mono_types_and_pure_types_are_split_as_agreed()
         {
-            Assert.IsTrue(typeof(MonoBehaviour).IsAssignableFrom(typeof(WorldObject<,,>)));
-            Assert.AreEqual(typeof(ScriptableObject), typeof(ConfigDataSo).BaseType);
-
-            foreach (var type in new[] { typeof(Scope), typeof(Service), typeof(Controller<,>), typeof(Data<>) })
+            foreach (var type in new[] { typeof(Scope), typeof(Service), typeof(Controller<,>), typeof(WorldObject<,,>) })
             {
-                Assert.IsFalse(typeof(UnityEngine.Object).IsAssignableFrom(type), $"{type.Name} must not derive from UnityEngine.Object.");
+                Assert.IsTrue(typeof(MonoBehaviour).IsAssignableFrom(type), $"{type.Name} must derive from MonoBehaviour.");
             }
 
-            Assert.AreEqual(typeof(object), typeof(Controller<,>).BaseType);
-            Assert.AreEqual(typeof(object), typeof(Service).BaseType);
-            Assert.AreEqual(typeof(object), typeof(Scope).BaseType);
+            Assert.AreEqual(typeof(ScriptableObject), typeof(ConfigDataSo).BaseType);
+            Assert.IsFalse(typeof(UnityEngine.Object).IsAssignableFrom(typeof(Data<>)));
+            Assert.AreEqual(typeof(object), typeof(Data<>).BaseType);
         }
 
         [Test]
-        public void Scope_is_a_plain_container_without_lifecycle_interfaces()
+        public void Scope_implements_ILifecycle_but_not_IInjectable()
         {
+            Assert.IsTrue(typeof(ILifecycle).IsAssignableFrom(typeof(Scope)));
             Assert.IsFalse(typeof(IInjectable).IsAssignableFrom(typeof(Scope)));
-            Assert.IsFalse(typeof(ILifecycle).IsAssignableFrom(typeof(Scope)));
         }
 
         [Test]
@@ -123,8 +126,8 @@ namespace Fang.Framework.Tests
         {
             var expected = new[]
             {
-                "Name", "Parent", "Services", "Children", "IsDisposed",
-                "Dispose", "Tick", "FixedTick",
+                "Name", "Parent", "Services", "Children", "IsInitialized",
+                "OnInit", "OnDispose", "Tick", "FixedTick",
                 "CreateChildScope", "AddService", "GetService", "RemoveService"
             };
 
@@ -136,7 +139,8 @@ namespace Fang.Framework.Tests
             var forbidden = new[]
             {
                 "Build", "Register", "RegisterInstance", "Resolve", "TryResolve", "TryGet",
-                "Inject", "InjectHierarchy", "CreateChild", "IsBuilt", "Initialize"
+                "Inject", "InjectHierarchy", "CreateChild", "IsBuilt", "Initialize",
+                "Dispose", "IsDisposed"
             };
 
             var declared = typeof(Scope).GetMembers(DeclaredAll).Select(member => member.Name).ToList();
@@ -148,9 +152,10 @@ namespace Fang.Framework.Tests
         }
 
         [Test]
-        public void Scope_registration_and_tick_entry_points_have_the_agreed_accessibility()
+        public void Scope_registration_and_lifecycle_entry_points_have_the_agreed_accessibility()
         {
-            AssertMethodAccessibility(typeof(Scope), "Dispose", true);
+            AssertMethodAccessibility(typeof(Scope), "OnInit", true);
+            AssertMethodAccessibility(typeof(Scope), "OnDispose", true);
             AssertMethodAccessibility(typeof(Scope), "Tick", true);
             AssertMethodAccessibility(typeof(Scope), "FixedTick", true);
             AssertMethodAccessibility(typeof(Scope), "CreateChildScope", false);
@@ -159,15 +164,19 @@ namespace Fang.Framework.Tests
         }
 
         [Test]
-        public void Scope_holds_no_Unity_reference()
+        public void Scope_Service_and_Controller_declare_no_unity_message_methods()
         {
-            var referenced = typeof(Scope)
-                .GetMembers(DeclaredAll)
-                .Select(member => member as FieldInfo)
-                .Where(field => field != null)
-                .Any(field => typeof(UnityEngine.Object).IsAssignableFrom(field.FieldType));
+            var messages = new[] { "Awake", "Start", "Update", "FixedUpdate", "LateUpdate", "OnEnable", "OnDisable", "OnDestroy" };
 
-            Assert.IsFalse(referenced, "Scope must not hold Unity objects.");
+            foreach (var type in new[] { typeof(Scope), typeof(Service), typeof(Controller<,>) })
+            {
+                var declared = type.GetMembers(DeclaredAll).Select(member => member.Name).ToList();
+
+                foreach (var message in messages)
+                {
+                    Assert.IsFalse(declared.Contains(message), $"{type.Name} must not declare Unity message '{message}'.");
+                }
+            }
         }
 
         [Test]
@@ -311,18 +320,37 @@ namespace Fang.Framework.Tests
         [Test]
         public void Controller_Initialize_rejects_null()
         {
-            Assert.Throws<ArgumentNullException>(() => { new TestController().Initialize(null); });
+            var host = new GameObject("ControllerInitializeHost");
+            try
+            {
+                var controller = host.AddComponent<TestController>();
+
+                Assert.Throws<ArgumentNullException>(() => { controller.Initialize(null); });
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(host);
+            }
         }
 
         [Test]
         public void Controller_Inject_stores_the_scope()
         {
-            var scope = new ProbeScope();
-            var controller = new TestController();
+            var scope = ProbeScope.Create<ProbeScope>();
+            var host = new GameObject("ControllerInjectHost");
 
-            controller.Inject(scope);
+            try
+            {
+                var controller = host.AddComponent<TestController>();
 
-            Assert.AreSame(scope, controller.InjectedScope);
+                controller.Inject(scope);
+
+                Assert.AreSame(scope, controller.InjectedScope);
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(host);
+            }
         }
 
         [Test]

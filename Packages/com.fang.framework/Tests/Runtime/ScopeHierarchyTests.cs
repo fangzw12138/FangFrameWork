@@ -11,10 +11,16 @@ namespace Fang.Framework.Tests
             LifecycleLog.Reset();
         }
 
+        [TearDown]
+        public void TearDown()
+        {
+            ProbeScope.DestroyAll();
+        }
+
         [Test]
         public void CreateChildScope_records_both_directions()
         {
-            var parent = new ProbeScope();
+            var parent = ProbeScope.Create<ProbeScope>();
 
             var child = parent.AddChild<ProbeChildScope>();
 
@@ -25,16 +31,26 @@ namespace Fang.Framework.Tests
         }
 
         [Test]
+        public void CreateChildScope_parents_the_host_under_the_scope_transform()
+        {
+            var parent = ProbeScope.Create<ProbeScope>();
+
+            var child = parent.AddChild<ProbeChildScope>();
+
+            Assert.AreSame(parent.transform, child.transform.parent);
+        }
+
+        [Test]
         public void Name_is_the_concrete_type_name()
         {
-            Assert.AreEqual(nameof(ProbeScope), new ProbeScope().Name);
-            Assert.AreEqual(nameof(ProbeChildScope), new ProbeChildScope().Name);
+            Assert.AreEqual(nameof(ProbeScope), ProbeScope.Create<ProbeScope>().Name);
+            Assert.AreEqual(nameof(ProbeChildScope), ProbeScope.Create<ProbeChildScope>().Name);
         }
 
         [Test]
         public void Child_scope_resolves_a_parent_service()
         {
-            var parent = new ProbeScope();
+            var parent = ProbeScope.Create<ProbeScope>();
             var service = parent.Add<AudioService>();
             var child = parent.AddChild<ProbeChildScope>();
 
@@ -44,7 +60,7 @@ namespace Fang.Framework.Tests
         [Test]
         public void Child_layer_wins_over_the_parent_layer()
         {
-            var parent = new ProbeScope();
+            var parent = ProbeScope.Create<ProbeScope>();
             var parentService = parent.Add<AudioService>();
             var child = parent.AddChild<ProbeChildScope>();
             var childService = child.Add<AudioServiceOverride>();
@@ -58,7 +74,7 @@ namespace Fang.Framework.Tests
         [Test]
         public void Grandchild_resolves_the_topmost_ancestor_service()
         {
-            var root = new ProbeScope();
+            var root = ProbeScope.Create<ProbeScope>();
             var service = root.Add<AudioService>();
             var child = root.AddChild<ProbeChildScope>();
             var grandchild = child.AddChild<ProbeGrandChildScope>();
@@ -69,7 +85,7 @@ namespace Fang.Framework.Tests
         [Test]
         public void GetService_throws_when_the_whole_chain_misses()
         {
-            var root = new ProbeScope();
+            var root = ProbeScope.Create<ProbeScope>();
             var child = root.AddChild<ProbeChildScope>();
             var grandchild = child.AddChild<ProbeGrandChildScope>();
 
@@ -79,15 +95,15 @@ namespace Fang.Framework.Tests
         [Test]
         public void Parent_dispose_recursively_disposes_children()
         {
-            var root = new ProbeScope();
+            var root = ProbeScope.Create<ProbeScope>();
             var child = root.AddChild<ProbeChildScope>();
             var grandchild = child.AddChild<ProbeGrandChildScope>();
 
-            root.Dispose();
+            root.OnDispose();
 
-            Assert.IsTrue(root.IsDisposed);
-            Assert.IsTrue(child.IsDisposed);
-            Assert.IsTrue(grandchild.IsDisposed);
+            Assert.IsFalse(root.IsInitialized);
+            Assert.IsFalse(child.IsInitialized);
+            Assert.IsFalse(grandchild.IsInitialized);
             Assert.AreEqual(0, root.Children.Count);
             Assert.IsNull(child.Parent);
         }
@@ -95,21 +111,21 @@ namespace Fang.Framework.Tests
         [Test]
         public void Dispose_is_idempotent_and_child_dispose_does_not_touch_the_parent()
         {
-            var root = new ProbeScope();
+            var root = ProbeScope.Create<ProbeScope>();
             root.Add<LifecycleProbeA>();
             var child = root.AddChild<ProbeChildScope>();
             child.Add<LifecycleProbeB>();
 
-            child.Dispose();
-            child.Dispose();
+            child.OnDispose();
+            child.OnDispose();
 
-            Assert.IsTrue(child.IsDisposed);
-            Assert.IsFalse(root.IsDisposed);
+            Assert.IsFalse(child.IsInitialized);
+            Assert.IsTrue(root.IsInitialized);
 
-            root.Dispose();
+            root.OnDispose();
 
             CollectionAssert.AreEqual(
-                new[] { "create:A", "init:A", "create:B", "init:B", "dispose:B", "dispose:A" },
+                new[] { "init:A", "init:B", "dispose:B", "dispose:A" },
                 LifecycleLog.Entries);
         }
     }

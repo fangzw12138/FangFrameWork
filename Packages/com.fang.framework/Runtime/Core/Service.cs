@@ -1,6 +1,8 @@
+using UnityEngine;
+
 namespace Fang.Framework
 {
-    public abstract class Service : IInjectable, ILifecycle
+    public abstract class Service : MonoBehaviour, IInjectable, ILifecycle
     {
         protected Scope Scope { get; private set; }
 

@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.3.0] - 2026-09-21
+
+### Changed
+
+- **Core 回归 mono**：`Scope` / `Service` / `Controller<TConfig, TData>` 从纯 C# 改回 MonoBehaviour；`Data<TConfig>` 仍是纯 C#，`ConfigDataSo` 仍是 ScriptableObject。
+- **`Scope` 实现 `ILifecycle`**：生命周期入口改为 `OnInit()` / `OnDispose()`（都是 `virtual`，取代原 `Dispose()`）；`IsDisposed` 删除，换成 `IsInitialized`（`OnInit()` 置 `true`，`OnDispose()` 置 `false`，同时充当 `OnDispose` 的幂等守卫）。
+- **`AddService<T>()` 改为建物体 + `AddComponent<T>()`**：服务物体挂在 Scope 的子物体 `Services` 下（懒建）；约束由 `where T : Service, new()` 放宽为 `where T : Service`。
+- **`CreateChildScope<T>()` 改为建子物体 + `AddComponent<T>()`**：子 Scope 物体挂在父 Scope 物体下，解析链仍是显式 `_parent`。
+- **框架不再销毁任何 GameObject**：`RemoveService<T>()` 与 `OnDispose()` 只做注销与钩子回调，物体留给使用方或 Unity 层级回收。
+- **`Service` 不定义任何 Unity 消息方法**：不做自注册，业务钩子只走 `OnInit` / `OnDispose` / `OnTick` / `OnFixedTick`。
+- **`Scope` / `Service` / `Controller` 的 `OnInit` 由使用方显式驱动**：框架仍不提供宿主 MonoBehaviour，也不写 `Awake` / `Update` / `OnDestroy`。
+- 测试替身改为 MonoBehaviour（`ProbeScope.Create<TScope>()` 工厂 + `DestroyAll()` 回收），并补上「服务物体挂在 `Services` 下」「框架不销毁物体」「未初始化时 `OnDispose` 是 no-op」「不声明 Unity 消息方法」等契约。
+- 文档同步：`Documentation~/` 五份、`README.md`。
+
 ## [0.2.0] - 2026-09-21
 
 ### Changed

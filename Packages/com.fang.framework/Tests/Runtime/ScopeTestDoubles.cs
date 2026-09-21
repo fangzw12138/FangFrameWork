@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace Fang.Framework.Tests
 {
@@ -19,7 +20,36 @@ namespace Fang.Framework.Tests
 
     internal class ProbeScope : Scope
     {
-        public TService Add<TService>() where TService : Service, new()
+        private static readonly List<GameObject> Hosts = new List<GameObject>();
+
+        public static TScope Create<TScope>() where TScope : Scope
+        {
+            var scope = CreateUninitialized<TScope>();
+            scope.OnInit();
+            return scope;
+        }
+
+        public static TScope CreateUninitialized<TScope>() where TScope : Scope
+        {
+            var host = new GameObject(typeof(TScope).Name);
+            Hosts.Add(host);
+            return host.AddComponent<TScope>();
+        }
+
+        public static void DestroyAll()
+        {
+            for (var i = Hosts.Count - 1; i >= 0; i--)
+            {
+                if (Hosts[i] != null)
+                {
+                    UnityEngine.Object.DestroyImmediate(Hosts[i]);
+                }
+            }
+
+            Hosts.Clear();
+        }
+
+        public TService Add<TService>() where TService : Service
         {
             return AddService<TService>();
         }
@@ -29,9 +59,11 @@ namespace Fang.Framework.Tests
             RemoveService<TService>();
         }
 
-        public TChild AddChild<TChild>() where TChild : Scope, new()
+        public TChild AddChild<TChild>() where TChild : Scope
         {
-            return CreateChildScope<TChild>();
+            var child = CreateChildScope<TChild>();
+            child.OnInit();
+            return child;
         }
     }
 
@@ -54,11 +86,6 @@ namespace Fang.Framework.Tests
 
     internal sealed class LifecycleProbeA : Service
     {
-        public LifecycleProbeA()
-        {
-            LifecycleLog.Add("create:A");
-        }
-
         public override void OnInit()
         {
             LifecycleLog.Add("init:A");
@@ -72,11 +99,6 @@ namespace Fang.Framework.Tests
 
     internal sealed class LifecycleProbeB : Service
     {
-        public LifecycleProbeB()
-        {
-            LifecycleLog.Add("create:B");
-        }
-
         public override void OnInit()
         {
             LifecycleLog.Add("init:B");
@@ -90,11 +112,6 @@ namespace Fang.Framework.Tests
 
     internal sealed class LifecycleProbeC : Service
     {
-        public LifecycleProbeC()
-        {
-            LifecycleLog.Add("create:C");
-        }
-
         public override void OnInit()
         {
             LifecycleLog.Add("init:C");

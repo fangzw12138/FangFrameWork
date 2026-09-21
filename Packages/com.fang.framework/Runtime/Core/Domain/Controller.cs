@@ -1,8 +1,9 @@
 using System;
+using UnityEngine;
 
 namespace Fang.Framework
 {
-    public abstract class Controller<TConfig, TData> : IInjectable, ILifecycle
+    public abstract class Controller<TConfig, TData> : MonoBehaviour, IInjectable, ILifecycle
         where TConfig : ConfigDataSo
         where TData : Data<TConfig>
     {

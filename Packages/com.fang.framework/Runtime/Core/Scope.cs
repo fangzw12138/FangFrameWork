@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace Fang.Framework
 {
@@ -8,12 +9,14 @@ namespace Fang.Framework
         void Inject(Scope scope);
     }
 
-    public abstract class Scope
+    public abstract class Scope : MonoBehaviour, ILifecycle
     {
+        private const string ServicesNodeName = "Services";
+
         private readonly List<Service> _services = new List<Service>();
         private readonly List<Scope> _children = new List<Scope>();
         private Scope _parent;
-        private bool _disposed;
+        private Transform _servicesRoot;
 
         public string Name => GetType().Name;
 
@@ -23,20 +26,25 @@ namespace Fang.Framework
 
         public IReadOnlyList<Scope> Children => _children;
 
-        public bool IsDisposed => _disposed;
+        public bool IsInitialized { get; private set; }
 
-        public void Dispose()
+        public virtual void OnInit()
         {
-            if (_disposed)
+            IsInitialized = true;
+        }
+
+        public virtual void OnDispose()
+        {
+            if (!IsInitialized)
             {
                 return;
             }
 
-            _disposed = true;
+            IsInitialized = false;
 
             for (var i = _children.Count - 1; i >= 0; i--)
             {
-                _children[i].Dispose();
+                _children[i].OnDispose();
             }
 
             for (var i = _services.Count - 1; i >= 0; i--)
@@ -81,17 +89,23 @@ namespace Fang.Framework
             }
         }
 
-        protected T CreateChildScope<T>() where T : Scope, new()
+        protected T CreateChildScope<T>() where T : Scope
         {
-            var scope = new T();
+            var host = new GameObject(typeof(T).Name);
+            host.transform.SetParent(transform, false);
+
+            var scope = host.AddComponent<T>();
             scope._parent = this;
             _children.Add(scope);
             return scope;
         }
 
-        protected T AddService<T>() where T : Service, new()
+        protected T AddService<T>() where T : Service
         {
-            var service = new T();
+            var host = new GameObject(typeof(T).Name);
+            host.transform.SetParent(ServicesRoot, false);
+
+            var service = host.AddComponent<T>();
             service.Inject(this);
             _services.Add(service);
             service.OnInit();
@@ -129,6 +143,21 @@ namespace Fang.Framework
                     _services.RemoveAt(i);
                     return;
                 }
+            }
+        }
+
+        private Transform ServicesRoot
+        {
+            get
+            {
+                if (_servicesRoot == null)
+                {
+                    var host = new GameObject(ServicesNodeName);
+                    host.transform.SetParent(transform, false);
+                    _servicesRoot = host.transform;
+                }
+
+                return _servicesRoot;
             }
         }
     }

@@ -1,0 +1,16 @@
+{
+  "name": "Fang.Framework.MinimalSample",
+  "rootNamespace": "Fang.Framework.MinimalSample",
+  "references": [
+    "Fang.Framework"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": false,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

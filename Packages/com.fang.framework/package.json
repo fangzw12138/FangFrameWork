@@ -13,5 +13,12 @@
   "author": {
     "name": "Fang"
   },
-  "dependencies": {}
+  "dependencies": {},
+  "samples": [
+    {
+      "displayName": "Minimal Sample",
+      "description": "App / Game / Scene Scope 与四件套（Config / Data / Controller / WorldObject）的最小可运行范式。",
+      "path": "Samples~/MinimalSample"
+    }
+  ]
 }

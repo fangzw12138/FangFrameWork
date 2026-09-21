@@ -14,8 +14,11 @@
 8. **依赖方向单向：`WorldObject → Controller → Data`。** `Controller` 类型上不得出现任何指向 `WorldObject` 的成员。
 9. **语言级别锁定 C# 9。** 禁用文件级 namespace、`global using`、`record struct`、`required` 成员、原始字符串字面量。
 10. **不使用 Unity 6 独有 API。**
+11. **零反射。** 不缓存构造函数、不按类型动态构造、不做反射注入。服务一律 `new T()`（`where T : Service, new()`），依赖一律显式 `Scope.GetService<T>()`。
+12. **框架核心零 MonoBehaviour（`WorldObject` 除外）。** `Scope` / `Service` / `Controller` 必须是纯 C# 类；Unity 接触面（`new GameObject`、`Instantiate`、`AudioSource`、协程、`Update`）全部由使用方自己写的 MonoBehaviour 桥接。框架不提供宿主 MonoBehaviour。
+13. **`Scope` 没有就绪门槛。** 不重新引入 `Build()` / `Register()` / `Resolve()` / 自定义异常类型。`AddService` / `RemoveService` 随时可用。
 
-以上第 3、7、8 条由 `Tests/Runtime/DomainContractTests.cs` 反射守住；改动核心类型后必须重跑测试。
+以上第 3、7、8、12 条由 `Tests/Runtime/DomainContractTests.cs` 反射守住；改动核心类型后必须重跑测试。
 
 ## 二、Data 写入规则
 

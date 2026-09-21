@@ -19,6 +19,7 @@
 | 引擎 | Unity 2022.3+ / 团结引擎 2022.3+ |
 | 语言 | C# 9（不使用文件级 namespace、`global using`、`record struct`、`required`、原始字符串字面量） |
 | 依赖 | 无。`package.json` 的 `dependencies` 为空对象 |
+| 反射 | 零反射。服务一律 `new T()`，依赖一律显式 `Scope.GetService<T>()` |
 | 线程 | 主线程。`Scope` 不保证线程安全 |
 
 ## 安装
@@ -29,16 +30,19 @@
 
 ## 内容
 
-| 类型 | 位置 | 说明 |
-| --- | --- | --- |
-| `ConfigDataSo` | `Runtime/Domain` | 只读配置资产基类 |
-| `Data<TConfig>` | `Runtime/Domain` | 运行时数据唯一真相来源 |
-| `Controller<TConfig, TData>` | `Runtime/Domain` | 逻辑层，MonoBehaviour |
-| `WorldObject<TController, TData, TConfig>` | `Runtime/Domain` | 表现层，MonoBehaviour |
-| `Service` | `Runtime/Service` | Scope 管理的长期能力语义基类 |
-| `Scope` | `Runtime/Scope` | 容器：注册 / 构建 / 解析 / 注入 / 层级 / 释放 |
+| 类型 | 位置 | 形态 | 说明 |
+| --- | --- | --- | --- |
+| `ConfigDataSo` | `Runtime/Core/Domain` | ScriptableObject | 只读配置资产基类 |
+| `Data<TConfig>` | `Runtime/Core/Domain` | 纯 C# | 运行时数据唯一真相来源 |
+| `Controller<TConfig, TData>` | `Runtime/Core/Domain` | 纯 C# | 逻辑层 |
+| `WorldObject<TController, TData, TConfig>` | `Runtime/Core/Domain` | MonoBehaviour | 表现层 |
+| `Service` | `Runtime/Core` | 纯 C# | Scope 管理的长期能力基类 |
+| `Scope` | `Runtime/Core` | 纯 C# | 服务表 / 父子树 / 生命周期驱动 / 释放 |
+| `ILifecycle` / `ITickable` / `IFixedTickable` | `Runtime/Core` | 接口 | 初始化与销毁、每帧、固定帧 |
 
 依赖方向单向：`WorldObject → Controller → Data`。`Controller` 不认识 `WorldObject`。
+
+**框架核心零 MonoBehaviour，`WorldObject` 是唯一例外。** 框架不提供宿主 MonoBehaviour —— 使用方自己写一个，调 `Scope.Tick` / `Scope.FixedTick` / `Scope.Dispose`。
 
 ## 文档
 

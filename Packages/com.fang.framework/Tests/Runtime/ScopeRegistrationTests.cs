@@ -1,124 +1,86 @@
+using System;
 using NUnit.Framework;
 
 namespace Fang.Framework.Tests
 {
     public class ScopeRegistrationTests
     {
-        [Test]
-        public void Resolve_throws_for_unregistered_type()
+        [SetUp]
+        public void SetUp()
         {
-            using (var scope = new Scope("registration"))
-            {
-                scope.Register<IProbeService, ProbeService>();
-                scope.Build();
-
-                Assert.Throws<ScopeResolveException>(() => { scope.Resolve<UnregisteredService>(); });
-            }
+            LifecycleLog.Reset();
         }
 
         [Test]
-        public void Register_after_build_throws()
+        public void AddService_injects_the_owning_scope_and_returns_the_instance()
         {
-            using (var scope = new Scope("registration"))
-            {
-                scope.Register<IProbeService, ProbeService>();
-                scope.Build();
+            var scope = new ProbeScope();
 
-                Assert.Throws<ScopeStateException>(() => { scope.Register<UnregisteredService, UnregisteredService>(); });
-                Assert.Throws<ScopeStateException>(() => { scope.RegisterInstance(new UnregisteredService()); });
-                Assert.Throws<ScopeStateException>(() => { scope.Register<IProbeService>(_ => new ProbeFactoryResult()); });
-            }
+            var service = scope.Add<AudioService>();
+
+            Assert.AreSame(scope, service.InjectedScope);
+            Assert.AreSame(service, scope.GetService<AudioService>());
+            Assert.AreEqual(1, scope.Services.Count);
         }
 
         [Test]
-        public void Build_twice_throws()
+        public void AddService_initializes_the_service_right_away()
         {
-            using (var scope = new Scope("registration"))
-            {
-                scope.Register<IProbeService, ProbeService>();
-                scope.Build();
+            var scope = new ProbeScope();
 
-                Assert.Throws<ScopeStateException>(() => { scope.Build(); });
-            }
+            scope.Add<LifecycleProbeA>();
+
+            CollectionAssert.AreEqual(new[] { "create:A", "init:A" }, LifecycleLog.Entries);
         }
 
         [Test]
-        public void Resolve_returns_the_same_instance_for_every_call()
+        public void GetService_throws_for_an_unregistered_service()
         {
-            using (var scope = new Scope("registration"))
-            {
-                scope.Register<IProbeService, ProbeService>();
-                scope.Build();
+            var scope = new ProbeScope();
 
-                var first = scope.Resolve<IProbeService>();
-                var second = scope.Resolve<IProbeService>();
-
-                Assert.IsInstanceOf<ProbeService>(first);
-                Assert.AreSame(first, second);
-            }
+            Assert.Throws<InvalidOperationException>(() => { scope.GetService<AudioService>(); });
         }
 
         [Test]
-        public void Factory_and_instance_registrations_resolve()
+        public void GetService_message_names_the_service_and_the_scope()
         {
-            var provided = new UnregisteredService();
+            var scope = new ProbeScope();
 
-            using (var scope = new Scope("registration"))
-            {
-                scope.Register<IProbeService>(_ => new ProbeFactoryResult());
-                scope.RegisterInstance(provided);
-                scope.Build();
+            var exception = Assert.Throws<InvalidOperationException>(() => { scope.GetService<AudioService>(); });
 
-                Assert.IsInstanceOf<ProbeFactoryResult>(scope.Resolve<IProbeService>());
-                Assert.AreSame(provided, scope.Resolve<UnregisteredService>());
-            }
+            StringAssert.Contains(typeof(AudioService).FullName, exception.Message);
+            StringAssert.Contains(nameof(ProbeScope), exception.Message);
         }
 
         [Test]
-        public void Constructor_dependencies_are_injected()
+        public void RemoveService_disposes_and_unregisters_the_service()
         {
-            using (var scope = new Scope("registration"))
-            {
-                scope.Register<IProbeService, ProbeService>();
-                scope.Register<DependentService, DependentService>();
-                scope.Build();
+            var scope = new ProbeScope();
+            scope.Add<LifecycleProbeA>();
 
-                var dependent = scope.Resolve<DependentService>();
+            scope.Remove<LifecycleProbeA>();
 
-                Assert.IsInstanceOf<ProbeService>(dependent.Probe);
-                Assert.AreSame(scope.Resolve<IProbeService>(), dependent.Probe);
-            }
+            CollectionAssert.AreEqual(new[] { "create:A", "init:A", "dispose:A" }, LifecycleLog.Entries);
+            Assert.AreEqual(0, scope.Services.Count);
+            Assert.Throws<InvalidOperationException>(() => { scope.GetService<LifecycleProbeA>(); });
         }
 
         [Test]
-        public void TryResolve_reports_missing_registrations_without_throwing()
+        public void RemoveService_is_a_no_op_when_the_service_is_absent()
         {
-            using (var scope = new Scope("registration"))
-            {
-                scope.Register<IProbeService, ProbeService>();
-                scope.Build();
+            var scope = new ProbeScope();
 
-                Assert.IsTrue(scope.TryResolve<IProbeService>(out var probe));
-                Assert.IsInstanceOf<ProbeService>(probe);
-
-                Assert.IsFalse(scope.TryResolve<UnregisteredService>(out var missing));
-                Assert.IsNull(missing);
-            }
+            Assert.DoesNotThrow(() => { scope.Remove<AudioService>(); });
         }
 
         [Test]
-        public void Circular_dependency_throws_with_the_full_chain()
+        public void GetService_returns_the_first_match_in_add_order()
         {
-            using (var scope = new Scope("registration"))
-            {
-                scope.Register<CircularServiceA, CircularServiceA>();
-                scope.Register<CircularServiceB, CircularServiceB>();
+            var scope = new ProbeScope();
+            var first = scope.Add<AudioService>();
+            scope.Add<AudioServiceOverride>();
 
-                var exception = Assert.Throws<ScopeCircularDependencyException>(() => { scope.Build(); });
-
-                StringAssert.Contains(typeof(CircularServiceA).FullName, exception.Message);
-                StringAssert.Contains(typeof(CircularServiceB).FullName, exception.Message);
-            }
+            Assert.AreSame(first, scope.GetService<Service>());
         }
     }
 }

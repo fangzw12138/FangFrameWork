@@ -20,6 +20,7 @@ namespace Fang.Framework.Tests
 
     internal sealed class TestController : Controller<TestConfigDataSo, TestData>
     {
+        public Scope InjectedScope => Scope;
     }
 
     internal sealed class TestWorldObject : WorldObject<TestController, TestData, TestConfigDataSo>
@@ -32,19 +33,141 @@ namespace Fang.Framework.Tests
             BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly;
 
         [Test]
-        public void Domain_types_and_service_are_abstract()
+        public void Domain_types_service_and_scope_are_abstract()
         {
             Assert.IsTrue(typeof(ConfigDataSo).IsAbstract);
             Assert.IsTrue(typeof(Data<>).IsAbstract);
             Assert.IsTrue(typeof(Controller<,>).IsAbstract);
             Assert.IsTrue(typeof(WorldObject<,,>).IsAbstract);
             Assert.IsTrue(typeof(Service).IsAbstract);
+            Assert.IsTrue(typeof(Scope).IsAbstract);
         }
 
         [Test]
-        public void ConfigDataSo_derives_from_ScriptableObject()
+        public void Only_WorldObject_stays_on_the_unity_side()
         {
+            Assert.IsTrue(typeof(MonoBehaviour).IsAssignableFrom(typeof(WorldObject<,,>)));
             Assert.AreEqual(typeof(ScriptableObject), typeof(ConfigDataSo).BaseType);
+
+            foreach (var type in new[] { typeof(Scope), typeof(Service), typeof(Controller<,>), typeof(Data<>) })
+            {
+                Assert.IsFalse(typeof(UnityEngine.Object).IsAssignableFrom(type), $"{type.Name} must not derive from UnityEngine.Object.");
+            }
+
+            Assert.AreEqual(typeof(object), typeof(Controller<,>).BaseType);
+            Assert.AreEqual(typeof(object), typeof(Service).BaseType);
+            Assert.AreEqual(typeof(object), typeof(Scope).BaseType);
+        }
+
+        [Test]
+        public void Scope_is_a_plain_container_without_lifecycle_interfaces()
+        {
+            Assert.IsFalse(typeof(IInjectable).IsAssignableFrom(typeof(Scope)));
+            Assert.IsFalse(typeof(ILifecycle).IsAssignableFrom(typeof(Scope)));
+        }
+
+        [Test]
+        public void IInjectable_declares_Inject_against_Scope()
+        {
+            var method = typeof(IInjectable).GetMethod("Inject", BindingFlags.Public | BindingFlags.Instance);
+
+            Assert.IsNotNull(method);
+            Assert.AreEqual(typeof(void), method.ReturnType);
+            Assert.AreEqual(new[] { typeof(Scope) }, method.GetParameters().Select(parameter => parameter.ParameterType).ToArray());
+        }
+
+        [Test]
+        public void Lifecycle_interfaces_declare_the_expected_members()
+        {
+            AssertMethod(typeof(ILifecycle), "OnInit", typeof(void));
+            AssertMethod(typeof(ILifecycle), "OnDispose", typeof(void));
+            AssertMethod(typeof(ITickable), "OnTick", typeof(void), typeof(float));
+            AssertMethod(typeof(IFixedTickable), "OnFixedTick", typeof(void), typeof(float));
+        }
+
+        [Test]
+        public void Controller_and_Service_implement_IInjectable_and_ILifecycle()
+        {
+            foreach (var type in new[] { typeof(Controller<,>), typeof(Service) })
+            {
+                Assert.IsTrue(typeof(IInjectable).IsAssignableFrom(type), $"{type.Name} must implement IInjectable.");
+                Assert.IsTrue(typeof(ILifecycle).IsAssignableFrom(type), $"{type.Name} must implement ILifecycle.");
+            }
+        }
+
+        [Test]
+        public void Controller_and_Service_expose_a_protected_Scope()
+        {
+            foreach (var type in new[] { typeof(Controller<,>), typeof(Service) })
+            {
+                var property = type.GetProperty("Scope", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+
+                Assert.IsNotNull(property, $"{type.Name}.Scope is missing.");
+                Assert.AreEqual(typeof(Scope), property.PropertyType);
+                Assert.IsTrue(property.GetMethod.IsFamily, $"{type.Name}.Scope must be protected.");
+                Assert.IsNotNull(property.SetMethod);
+                Assert.IsFalse(property.SetMethod.IsPublic, $"{type.Name}.Scope must not be publicly writable.");
+            }
+        }
+
+        [Test]
+        public void Package_no_longer_declares_IInitializable()
+        {
+            Assert.IsFalse(
+                GetLoadableTypes(typeof(Scope).Assembly).Any(type => type.Name == "IInitializable"),
+                "IInitializable must be gone.");
+        }
+
+        [Test]
+        public void Scope_exposes_only_the_agreed_member_surface()
+        {
+            var expected = new[]
+            {
+                "Name", "Parent", "Services", "Children", "IsDisposed",
+                "Dispose", "Tick", "FixedTick",
+                "CreateChildScope", "AddService", "GetService", "RemoveService"
+            };
+
+            foreach (var name in expected)
+            {
+                Assert.IsTrue(typeof(Scope).GetMember(name, DeclaredAll).Length > 0, $"Scope.{name} is missing.");
+            }
+
+            var forbidden = new[]
+            {
+                "Build", "Register", "RegisterInstance", "Resolve", "TryResolve", "TryGet",
+                "Inject", "InjectHierarchy", "CreateChild", "IsBuilt", "Initialize"
+            };
+
+            var declared = typeof(Scope).GetMembers(DeclaredAll).Select(member => member.Name).ToList();
+
+            foreach (var name in forbidden)
+            {
+                Assert.IsFalse(declared.Contains(name), $"Scope must not declare '{name}'.");
+            }
+        }
+
+        [Test]
+        public void Scope_registration_and_tick_entry_points_have_the_agreed_accessibility()
+        {
+            AssertMethodAccessibility(typeof(Scope), "Dispose", true);
+            AssertMethodAccessibility(typeof(Scope), "Tick", true);
+            AssertMethodAccessibility(typeof(Scope), "FixedTick", true);
+            AssertMethodAccessibility(typeof(Scope), "CreateChildScope", false);
+            AssertMethodAccessibility(typeof(Scope), "AddService", false);
+            AssertMethodAccessibility(typeof(Scope), "RemoveService", false);
+        }
+
+        [Test]
+        public void Scope_holds_no_Unity_reference()
+        {
+            var referenced = typeof(Scope)
+                .GetMembers(DeclaredAll)
+                .Select(member => member as FieldInfo)
+                .Where(field => field != null)
+                .Any(field => typeof(UnityEngine.Object).IsAssignableFrom(field.FieldType));
+
+            Assert.IsFalse(referenced, "Scope must not hold Unity objects.");
         }
 
         [Test]
@@ -67,9 +190,6 @@ namespace Fang.Framework.Tests
             var dataConstraint = parameters[1].BaseType;
             Assert.AreEqual(typeof(Data<>), dataConstraint.GetGenericTypeDefinition());
             Assert.AreEqual(parameters[0].Name, dataConstraint.GetGenericArguments()[0].Name);
-
-            Assert.AreEqual(typeof(MonoBehaviour), type.BaseType);
-            Assert.IsTrue(typeof(IInjectable).IsAssignableFrom(type));
         }
 
         [Test]
@@ -92,7 +212,6 @@ namespace Fang.Framework.Tests
             Assert.AreEqual(parameters[2].Name, controllerArguments[0].Name);
             Assert.AreEqual(parameters[1].Name, controllerArguments[1].Name);
 
-            Assert.AreEqual(typeof(MonoBehaviour), type.BaseType);
             Assert.IsTrue(typeof(IInjectable).IsAssignableFrom(type));
         }
 
@@ -192,16 +311,18 @@ namespace Fang.Framework.Tests
         [Test]
         public void Controller_Initialize_rejects_null()
         {
-            var host = new GameObject("ControllerContractHost");
-            try
-            {
-                var controller = host.AddComponent<TestController>();
-                Assert.Throws<ArgumentNullException>(() => { controller.Initialize(null); });
-            }
-            finally
-            {
-                UnityEngine.Object.DestroyImmediate(host);
-            }
+            Assert.Throws<ArgumentNullException>(() => { new TestController().Initialize(null); });
+        }
+
+        [Test]
+        public void Controller_Inject_stores_the_scope()
+        {
+            var scope = new ProbeScope();
+            var controller = new TestController();
+
+            controller.Inject(scope);
+
+            Assert.AreSame(scope, controller.InjectedScope);
         }
 
         [Test]
@@ -293,6 +414,22 @@ namespace Fang.Framework.Tests
                     Assert.IsFalse(forbidden.Contains(member.Name), $"'{type.Name}.{member.Name}' must not expose persistence.");
                 }
             }
+        }
+
+        private static void AssertMethod(Type type, string name, Type returnType, params Type[] parameters)
+        {
+            var method = type.GetMethod(name, BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly, null, parameters, null);
+
+            Assert.IsNotNull(method, $"{type.Name}.{name} is missing.");
+            Assert.AreEqual(returnType, method.ReturnType);
+        }
+
+        private static void AssertMethodAccessibility(Type type, string name, bool isPublic)
+        {
+            var method = type.GetMethod(name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+
+            Assert.IsNotNull(method, $"{type.Name}.{name} is missing.");
+            Assert.AreEqual(isPublic, method.IsPublic, $"{type.Name}.{name} accessibility is wrong.");
         }
 
         private static void AssertNoWorldObjectReference(Type type)

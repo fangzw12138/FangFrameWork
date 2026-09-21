@@ -15,6 +15,14 @@ namespace Fang.Framework.Editor
         private const string CorePackageName = "com.fang.framework";
         private const string DefaultIndexUrl = "https://raw.githubusercontent.com/fangzw12138/FangFrameWork/main/packages.json";
 
+        private const float NameColumnWidth = 160f;
+        private const float MetaColumnWidth = 220f;
+        private const float ActionColumnWidth = 84f;
+        private const float RowHeight = 26f;
+
+        private static readonly Color DimColor = new Color(0.65f, 0.65f, 0.65f);
+        private static readonly Color LineColor = new Color(0.28f, 0.28f, 0.28f);
+
         private sealed class RowModel
         {
             public ExtensionPackageEntry Entry;
@@ -27,7 +35,8 @@ namespace Fang.Framework.Editor
 
         private sealed class RowRefs
         {
-            public Label Title;
+            public Label Name;
+            public Label Id;
             public Label Meta;
             public Button Action;
             public Action Handler;
@@ -41,14 +50,16 @@ namespace Fang.Framework.Editor
         private TextField _indexField;
         private Label _coreLabel;
         private Label _statusLabel;
+        private VisualElement _headerRow;
         private ListView _list;
+        private Label _emptyLabel;
         private bool _coreInstalled;
 
         [MenuItem("Tools/Fang Framework/Extension Packages")]
         public static void Open()
         {
             var window = GetWindow<ExtensionPackagesWindow>("扩展包");
-            window.minSize = new Vector2(560f, 360f);
+            window.minSize = new Vector2(620f, 380f);
         }
 
         private void CreateGUI()
@@ -57,6 +68,11 @@ namespace Fang.Framework.Editor
             BuildTree();
             _installer.Changed += OnInstallerChanged;
             _installer.RefreshInstalledPackages();
+
+            if (_index == null)
+            {
+                RefreshIndex();
+            }
         }
 
         private void OnDisable()
@@ -73,13 +89,14 @@ namespace Fang.Framework.Editor
 
         private void BuildTree()
         {
-            rootVisualElement.style.paddingLeft = 8f;
-            rootVisualElement.style.paddingRight = 8f;
+            rootVisualElement.style.paddingLeft = 10f;
+            rootVisualElement.style.paddingRight = 10f;
             rootVisualElement.style.paddingTop = 8f;
             rootVisualElement.style.paddingBottom = 8f;
 
             _indexField = new TextField("索引地址");
             _indexField.value = _indexUrl;
+            _indexField.style.flexGrow = 1f;
             _indexField.RegisterValueChangedCallback(evt =>
             {
                 _indexUrl = evt.newValue;
@@ -88,49 +105,111 @@ namespace Fang.Framework.Editor
 
             var refreshButton = new Button(RefreshIndex);
             refreshButton.text = "刷新索引";
+            refreshButton.style.marginLeft = 6f;
 
             var urlRow = new VisualElement();
             urlRow.style.flexDirection = FlexDirection.Row;
+            urlRow.style.alignItems = Align.Center;
             urlRow.Add(_indexField);
             urlRow.Add(refreshButton);
             rootVisualElement.Add(urlRow);
 
             _coreLabel = new Label();
+            _coreLabel.style.marginTop = 8f;
+            rootVisualElement.Add(_coreLabel);
+
             _statusLabel = new Label();
             _statusLabel.style.whiteSpace = WhiteSpace.Normal;
-            rootVisualElement.Add(_coreLabel);
             rootVisualElement.Add(_statusLabel);
+
+            _headerRow = BuildHeaderRow();
+            rootVisualElement.Add(_headerRow);
 
             _list = new ListView();
             _list.makeItem = MakeRow;
             _list.bindItem = BindRow;
-            _list.fixedItemHeight = 24f;
+            _list.fixedItemHeight = RowHeight;
             _list.selectionType = SelectionType.None;
+            _list.showAlternatingRowBackgrounds = AlternatingRowBackground.ContentOnly;
             _list.style.flexGrow = 1f;
             rootVisualElement.Add(_list);
 
+            _emptyLabel = new Label();
+            _emptyLabel.style.whiteSpace = WhiteSpace.Normal;
+            _emptyLabel.style.marginTop = 10f;
+            _emptyLabel.style.color = DimColor;
+            rootVisualElement.Add(_emptyLabel);
+
             UpdateCoreLabel();
             UpdateStatusLabel();
+            UpdateListVisibility();
+        }
+
+        private static VisualElement BuildHeaderRow()
+        {
+            var row = new VisualElement();
+            row.style.flexDirection = FlexDirection.Row;
+            row.style.alignItems = Align.Center;
+            row.style.marginTop = 10f;
+            row.style.paddingBottom = 3f;
+            row.style.borderBottomWidth = 1f;
+            row.style.borderBottomColor = LineColor;
+
+            var name = new Label("包");
+            name.style.width = NameColumnWidth;
+            name.style.flexShrink = 0f;
+            name.style.color = DimColor;
+
+            var id = new Label("包标识");
+            id.style.flexGrow = 1f;
+            id.style.color = DimColor;
+
+            var meta = new Label("索引 / 本地");
+            meta.style.width = MetaColumnWidth;
+            meta.style.flexShrink = 0f;
+            meta.style.color = DimColor;
+
+            var action = new Label("操作");
+            action.style.width = ActionColumnWidth;
+            action.style.flexShrink = 0f;
+            action.style.color = DimColor;
+
+            row.Add(name);
+            row.Add(id);
+            row.Add(meta);
+            row.Add(action);
+            return row;
         }
 
         private VisualElement MakeRow()
         {
             var row = new VisualElement();
             row.style.flexDirection = FlexDirection.Row;
+            row.style.alignItems = Align.Center;
 
-            var title = new Label();
-            title.style.flexGrow = 1f;
+            var name = new Label();
+            name.style.width = NameColumnWidth;
+            name.style.flexShrink = 0f;
+            name.style.unityFontStyleAndWeight = FontStyle.Bold;
+
+            var id = new Label();
+            id.style.flexGrow = 1f;
+            id.style.fontSize = 11f;
+            id.style.color = DimColor;
 
             var meta = new Label();
-            meta.style.width = 220f;
+            meta.style.width = MetaColumnWidth;
+            meta.style.flexShrink = 0f;
 
             var action = new Button();
-            action.style.width = 80f;
+            action.style.width = ActionColumnWidth;
+            action.style.flexShrink = 0f;
 
-            row.Add(title);
+            row.Add(name);
+            row.Add(id);
             row.Add(meta);
             row.Add(action);
-            row.userData = new RowRefs { Title = title, Meta = meta, Action = action };
+            row.userData = new RowRefs { Name = name, Id = id, Meta = meta, Action = action };
             return row;
         }
 
@@ -144,9 +223,15 @@ namespace Fang.Framework.Editor
             var refs = (RowRefs)element.userData;
             var row = _rows[index];
 
-            refs.Title.text = row.DisplayName + "  " + row.Name;
-            refs.Meta.text = "索引 " + row.IndexVersion + " / 本地 " + (row.InstalledVersion ?? "未装");
+            refs.Name.text = row.DisplayName;
+            refs.Id.text = row.Name;
+            refs.Meta.text = "索引 " + row.IndexVersion + " / 本地 " + (row.InstalledVersion ?? "未装")
+                + (row.State == ExtensionPackageState.Embedded ? "（内嵌）" : string.Empty);
+
             refs.Action.text = ActionText(row.State);
+            refs.Action.style.visibility = row.State == ExtensionPackageState.Embedded
+                ? Visibility.Hidden
+                : Visibility.Visible;
             refs.Action.SetEnabled(
                 !_installer.IsBusy
                 && _coreInstalled
@@ -292,6 +377,34 @@ namespace Fang.Framework.Editor
             }
 
             UpdateCoreLabel();
+            UpdateListVisibility();
+        }
+
+        private void UpdateListVisibility()
+        {
+            var hasRows = _rows.Count > 0;
+
+            if (_headerRow != null)
+            {
+                _headerRow.style.display = hasRows ? DisplayStyle.Flex : DisplayStyle.None;
+            }
+
+            if (_list != null)
+            {
+                _list.style.display = hasRows ? DisplayStyle.Flex : DisplayStyle.None;
+            }
+
+            if (_emptyLabel != null)
+            {
+                _emptyLabel.style.display = hasRows ? DisplayStyle.None : DisplayStyle.Flex;
+
+                if (!hasRows)
+                {
+                    _emptyLabel.text = _index == null
+                        ? "还没有扩展包列表。点「刷新索引」从上面的索引地址拉取。"
+                        : "索引里没有扩展包。";
+                }
+            }
         }
 
         private void OnInstallerChanged()

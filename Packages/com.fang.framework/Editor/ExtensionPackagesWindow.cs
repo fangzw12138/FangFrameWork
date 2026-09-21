@@ -407,13 +407,15 @@ namespace Fang.Framework.Editor
                 }
             }
 
+            UpdateCoreLabel();
+
             if (_list != null)
             {
                 _list.itemsSource = _rows;
                 _list.Rebuild();
+                _list.RefreshItems();
             }
 
-            UpdateCoreLabel();
             UpdateListVisibility();
         }
 

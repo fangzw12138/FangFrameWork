@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.3] - 2026-09-21
+
+### Fixed
+
+- **装 / 卸后按钮不再变灰**：`RebuildRows()` 原来是先 `_list.Rebuild()` 再 `UpdateCoreLabel()`，于是绑定按钮时读到的还是上一次的 `_coreInstalled`（false），装完后「卸载」按钮是灰的，得再点一次刷新才恢复。改为先算 `_coreInstalled` 再重建列表，并补 `RefreshItems()` 强制按最新状态重绑。
+- 核心包版本 `0.4.2` → `0.4.3`。
+
 ## [0.4.2] - 2026-09-21
 
 ### Changed

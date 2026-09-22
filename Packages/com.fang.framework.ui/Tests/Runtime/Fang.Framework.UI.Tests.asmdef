@@ -1,0 +1,27 @@
+{
+  "name": "Fang.Framework.UI.Tests",
+  "rootNamespace": "Fang.Framework.UI.Tests",
+  "references": [
+    "Fang.Framework",
+    "Fang.Framework.UI",
+    "Fang.Framework.UI.TestDoubles",
+    "UnityEngine.TestRunner",
+    "UnityEditor.TestRunner"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": true,
+  "precompiledReferences": [
+    "nunit.framework.dll"
+  ],
+  "autoReferenced": false,
+  "defineConstraints": [
+    "UNITY_INCLUDE_TESTS"
+  ],
+  "versionDefines": [],
+  "noEngineReferences": false,
+  "testAssemblies": true
+}

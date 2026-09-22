@@ -1,0 +1,20 @@
+{
+  "name": "Fang.Framework.UI.Editor",
+  "rootNamespace": "Fang.Framework.UI.Editor",
+  "references": [
+    "Fang.Framework",
+    "Fang.Framework.Editor",
+    "Fang.Framework.UI"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": false,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

@@ -16,6 +16,15 @@
       "version": "0.1.0",
       "tag": "com.fang.framework.eventbus/v0.1.0",
       "unity": "2022.3"
+    },
+    {
+      "name": "com.fang.framework.ui",
+      "displayName": "UI",
+      "description": "UGUI 与 UI Toolkit 双轨面板、面板栈、层排序与跟随面板。",
+      "path": "/Packages/com.fang.framework.ui",
+      "version": "0.1.0",
+      "tag": "com.fang.framework.ui/v0.1.0",
+      "unity": "2022.3"
     }
   ]
 }

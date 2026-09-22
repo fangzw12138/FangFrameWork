@@ -7,9 +7,11 @@ using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.UIElements;
 
-namespace Fang.Framework.Editor
+namespace Fang.Framework.Editor.Hub.Pages
 {
-    public sealed class ExtensionPackagesWindow : EditorWindow
+    [FangHubPage("framework-extension-packages", "扩展包", "Framework",
+        Description = "安装、更新、卸载核心包与扩展包。", Order = 0)]
+    public sealed class ExtensionPackagesPage : IFangHubVisualElementPage
     {
         private const string IndexUrlKey = "Fang.Framework.ExtensionPackages.IndexUrl";
         private const string CorePackageName = "com.fang.framework";
@@ -44,6 +46,7 @@ namespace Fang.Framework.Editor
 
         private readonly ExtensionPackageInstaller _installer = new ExtensionPackageInstaller();
         private readonly List<RowModel> _rows = new List<RowModel>();
+
         private string _indexUrl;
         private ExtensionPackageIndexDocument _index;
         private UnityWebRequest _fetch;
@@ -55,17 +58,22 @@ namespace Fang.Framework.Editor
         private Label _emptyLabel;
         private bool _coreInstalled;
 
-        [MenuItem("Tools/Fang Framework/Extension Packages")]
-        public static void Open()
+        public void OnInitialize(FangHubWindow window)
         {
-            var window = GetWindow<ExtensionPackagesWindow>("扩展包");
-            window.minSize = new Vector2(620f, 380f);
         }
 
-        private void CreateGUI()
+        public void OnSelected()
         {
+        }
+
+        public VisualElement CreateVisualElement()
+        {
+            var root = new VisualElement();
+            root.style.flexGrow = 1f;
+
+            BuildTree(root);
+
             _indexUrl = EditorPrefs.GetString(IndexUrlKey, DefaultIndexUrl);
-            BuildTree();
             _installer.Changed += OnInstallerChanged;
             _installer.RefreshInstalledPackages();
 
@@ -73,27 +81,12 @@ namespace Fang.Framework.Editor
             {
                 RefreshIndex();
             }
+
+            return root;
         }
 
-        private void OnDisable()
+        private void BuildTree(VisualElement root)
         {
-            _installer.Changed -= OnInstallerChanged;
-            EditorApplication.update -= TickFetch;
-
-            if (_fetch != null)
-            {
-                _fetch.Dispose();
-                _fetch = null;
-            }
-        }
-
-        private void BuildTree()
-        {
-            rootVisualElement.style.paddingLeft = 10f;
-            rootVisualElement.style.paddingRight = 10f;
-            rootVisualElement.style.paddingTop = 8f;
-            rootVisualElement.style.paddingBottom = 8f;
-
             var toolbar = new VisualElement();
             toolbar.style.flexDirection = FlexDirection.Row;
             toolbar.style.alignItems = Align.Center;
@@ -108,15 +101,15 @@ namespace Fang.Framework.Editor
 
             toolbar.Add(refreshButton);
             toolbar.Add(_statusLabel);
-            rootVisualElement.Add(toolbar);
+            root.Add(toolbar);
 
             _coreLabel = new Label();
             _coreLabel.style.marginTop = 4f;
             _coreLabel.style.color = DimColor;
-            rootVisualElement.Add(_coreLabel);
+            root.Add(_coreLabel);
 
             _headerRow = BuildHeaderRow();
-            rootVisualElement.Add(_headerRow);
+            root.Add(_headerRow);
 
             _list = new ListView();
             _list.makeItem = MakeRow;
@@ -125,15 +118,15 @@ namespace Fang.Framework.Editor
             _list.selectionType = SelectionType.None;
             _list.showAlternatingRowBackgrounds = AlternatingRowBackground.ContentOnly;
             _list.style.flexGrow = 1f;
-            rootVisualElement.Add(_list);
+            root.Add(_list);
 
             _emptyLabel = new Label();
             _emptyLabel.style.whiteSpace = WhiteSpace.Normal;
             _emptyLabel.style.marginTop = 10f;
             _emptyLabel.style.color = DimColor;
-            rootVisualElement.Add(_emptyLabel);
+            root.Add(_emptyLabel);
 
-            rootVisualElement.Add(BuildAdvancedSection());
+            root.Add(BuildAdvancedSection());
 
             UpdateCoreLabel();
             UpdateListVisibility();
@@ -147,7 +140,7 @@ namespace Fang.Framework.Editor
             advanced.style.marginTop = 10f;
 
             _indexField = new TextField("索引地址");
-            _indexField.value = _indexUrl;
+            _indexField.value = EditorPrefs.GetString(IndexUrlKey, DefaultIndexUrl);
             _indexField.style.flexGrow = 1f;
             _indexField.RegisterValueChangedCallback(evt =>
             {
@@ -172,8 +165,8 @@ namespace Fang.Framework.Editor
 
             var hint = new Label();
             hint.style.whiteSpace = WhiteSpace.Normal;
-            hint.style.color = DimColor;
             hint.style.fontSize = 11f;
+            hint.style.color = DimColor;
             hint.text = "索引是仓库根目录的 packages.json，窗口靠它知道有哪些扩展包、各自在哪个 tag。"
                 + "只有离线验证才需要改成 file:// 本地索引。";
 

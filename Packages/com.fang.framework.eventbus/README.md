@@ -8,13 +8,13 @@
 
 本包**引用核心包** `com.fang.framework`（asmdef 引用 `Fang.Framework`）。
 
-`package.json` 的 `dependencies` 是空对象 —— UPM 不支持包内声明 git URL 依赖，因此依赖关系靠 asmdef 引用 + 安装窗口编排 + 本文档声明。安装本包前请先确保核心包已装。
+`package.json` 的 `dependencies` 是空对象 —— UPM 不支持包内声明 git URL 依赖，因此依赖关系靠 asmdef 引用 + FangHub 扩展包页的前置检查 + 本文档声明。安装本包前请先确保核心包已装。
 
 ## 安装
 
-**方式一：安装窗口**（推荐）
+**方式一：FangHub 的扩展包页**（推荐）
 
-`Tools/Fang Framework/Extension Packages` → 刷新索引 → 点「安装」。
+`Tools/Fang Framework/Fang Hub` → 侧栏点「扩展包」→ 点「刷新」→ 点「安装」。
 
 **方式二：手写 `Packages/manifest.json`**
 
@@ -83,6 +83,15 @@ public readonly struct DamageDealt
 ```csharp
 events.Publish(new DamageDealt(10));
 ```
+
+## 编辑器
+
+本包带一个 FangHub 页（`Editor/EventBusPage.cs`，程序集 `Fang.Framework.EventBus.Editor`）：`Tools/Fang Framework/Fang Hub` → 侧栏「事件总线」。
+
+- 列出运行中每个 `EventBus` 的物体路径，以及它的事件类型、订阅者数量与处理函数（`目标类型.方法名`），用来回答「谁订了 `DamageDealt`」。
+- 订阅表是运行时状态，**进入 Play 模式后点「刷新」**才有内容；编辑模式下只显示提示。
+- 页面只读：不订阅、不退订、不发事件。订阅表走编辑器侧反射读取 —— 不为了一个只读观察器给运行时开公开 API。
+- 挂 FangHub 页的完整写法（asmdef 引用、属性字段、两种渲染接口、生命周期）见核心包 `Documentation~/FangHub.md`。
 
 ## API
 

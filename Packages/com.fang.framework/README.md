@@ -53,9 +53,9 @@
 
 ### 装扩展包
 
-**方式一：安装窗口**（推荐）
+**方式一：FangHub 的扩展包页**（推荐）
 
-`Tools/Fang Framework/Extension Packages` → 刷新索引 → 点「安装」。窗口会比对索引版本与本地版本，给出安装 / 更新 / 卸载按钮，并在核心包未装时禁用按钮。
+`Tools/Fang Framework/Fang Hub` → 侧栏点「扩展包」→ 点「刷新」→ 点「安装」。扩展包页会比对索引版本与本地版本，给出安装 / 更新 / 卸载按钮，并在核心包未装时禁用按钮。
 
 **方式二：手写 `Packages/manifest.json`**
 
@@ -70,7 +70,7 @@
 
 两个决定性事实（详见 `Documentation~/扩展包分发.md`）：
 
-1. **Unity 不检测 git 依赖更新** —— git 依赖解析后锁进 `packages-lock.json`，升级只能重新 `Client.Add` 一个新 tag。更新检测由安装窗口自己做。
+1. **Unity 不检测 git 依赖更新** —— git 依赖解析后锁进 `packages-lock.json`，升级只能重新 `Client.Add` 一个新 tag。更新检测由 FangHub 的扩展包页自己做。
 2. **UPM 不支持包内声明 git URL 依赖** —— 所以扩展包的 `dependencies` 是空对象，依赖靠 asmdef 引用 + 窗口前置检查 + 文档声明落地。
 
 扩展包索引是仓库根 `packages.json`，用 Unity 自带 `JsonUtility` 解析，零第三方依赖。
@@ -97,6 +97,7 @@
 - `Documentation~/架构总览.md`
 - `Documentation~/快速开始.md`
 - `Documentation~/表现层规范.md`
+- `Documentation~/FangHub.md`
 - `Documentation~/扩展包分发.md`
 - `Documentation~/目录规范.md`
 - `Documentation~/编码规范.md`
@@ -108,9 +109,11 @@
 
 | 入口 | 说明 |
 | --- | --- |
-| `Tools/Fang Framework/Extension Packages` | 扩展包索引与安装窗口：拉索引、比对版本、装 / 更新 / 卸 |
+| `Tools/Fang Framework/Fang Hub` | 编辑器工具枢纽：侧栏按分组列出工具页，右侧渲染选中页。扩展包用 `[FangHubPage]` + `IFangHubPage` 声明自己的页面，`TypeCache` 自动发现 |
 
-程序集 `Fang.Framework.Editor`。索引解析（`ExtensionPackageIndex`）与安装状态机（`ExtensionPackageInstaller`）是纯逻辑、可单测；只有窗口（`ExtensionPackagesWindow`）接触 UI 与网络。
+内置页「扩展包」：拉索引、比对版本、装 / 更新 / 卸。
+
+程序集 `Fang.Framework.Editor`。索引解析（`ExtensionPackageIndex`）、安装状态机（`ExtensionPackageInstaller`）、Hub 的页面扫描 / 布局 / 持久化都是纯逻辑、可单测；只有 `FangHubWindow` 与 `ExtensionPackagesPage` 接触 UI。
 
 ## 许可证
 

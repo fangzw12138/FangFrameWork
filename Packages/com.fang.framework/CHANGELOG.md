@@ -1,5 +1,32 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- **FangHub**：核心包内的编辑器工具枢纽（`Tools/Fang Framework/Fang Hub`）。侧栏按分组列出工具页、右侧渲染选中页；支持分组折叠 / 重命名 / 新建 / 删除、条目删除与「+」加回、拖拽排序与跨组移动、搜索。
+- **扩展包页面注册机制**：`[FangHubPage]` 属性 + `IFangHubPage`（基础接口）+ `IFangHubImGuiPage` / `IFangHubVisualElementPage`（渲染能力，二选一）。`FangHubPageRegistry.Discover()` 用 `TypeCache` 扫描 —— **扩展包零注册代码，核心包不引用扩展包**。
+- `FangHubLayout` / `FangHubGroupView` / `FangHubPageDescriptor` / `FangHubPageRegistry`：布局模型、侧栏视图模型、扫描结果与视图构建（全部纯逻辑、可单测）。
+- `FangHubLayoutStore`：布局持久化（`JsonUtility` ↔ `EditorPrefs`，按工程 token 隔离）。**不落资产** —— 包目录只读，往包里 `CreateAsset` 会失败。
+- `FangHubPageState`：扩展包页面存自己输入 / 选项状态的封装。
+- `FangEditorPrefs`：工程 token + 键前缀，布局与页面状态共用。
+- 内置页 `ExtensionPackagesPage`：承接原安装窗口的索引刷新 / 安装 / 更新 / 卸载，逻辑仍走 `ExtensionPackageIndex` / `ExtensionPackageInstaller`。
+- EditMode 测试：`FangHubLayoutTests.cs` / `FangHubPageRegistryTests.cs` / `FangHubPrefsTests.cs`。
+- `Documentation~/FangHub.md`；`目录规范.md` / `扩展包分发.md` / `架构总览.md` / `快速开始.md` / `README.md` 同步。
+
+### Changed
+
+- 编辑器入口收敛为**唯一**：`Tools/Fang Framework/Extension Packages` 菜单项删除，扩展包安装改为 FangHub 内的「扩展包」页。
+- Hub 窗口仍是 UI Toolkit 纯 C# 建树（不引 UXML / USS）；IMGUI 页用 `IMGUIContainer` + `ScrollView` 承载，且 **PlayMode 下不渲染**（避免常驻窗口每帧重绘重量级工具页叠加 Game 视图 GPU 负载）。
+
+### Removed
+
+- `Editor/ExtensionPackagesWindow.cs`：内容迁进 `Editor/Hub/Pages/ExtensionPackagesPage.cs`，独立菜单入口删除。
+
+### Fixed
+
+- **窗口在 `CreateGUI` 建树前被关闭时空引用**：`OnDisable()` → `DestroyPage()` 直接 `detailContent.Clear()`，而 `detailContent` 还没创建（窗口刚打开就被关掉、布局恢复时被销毁都会命中）。改为空值守卫，`ShowDetail()` 同样加守卫。
+
 ## [0.5.0] - 2026-09-21
 
 ### Removed

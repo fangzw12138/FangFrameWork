@@ -10,13 +10,21 @@
 - `FangHubLayoutStore`：布局持久化（`JsonUtility` ↔ `EditorPrefs`，按工程 token 隔离）。**不落资产** —— 包目录只读，往包里 `CreateAsset` 会失败。
 - `FangHubPageState`：扩展包页面存自己输入 / 选项状态的封装。
 - `FangEditorPrefs`：工程 token + 键前缀，布局与页面状态共用。
-- 内置页 `ExtensionPackagesPage`：承接原安装窗口的索引刷新 / 安装 / 更新 / 卸载，逻辑仍走 `ExtensionPackageIndex` / `ExtensionPackageInstaller`。
-- EditMode 测试：`FangHubLayoutTests.cs` / `FangHubPageRegistryTests.cs` / `FangHubPrefsTests.cs`。
+- 内置页 `ExtensionPackagesPage`（侧栏「框架与扩展」）：索引刷新 / 核心包更新 / 扩展包安装、更新、卸载，逻辑仍走 `ExtensionPackageIndex` / `ExtensionPackageInstaller` / `ExtensionPackageCatalog`。
+- `ExtensionPackageCatalog`（`Editor`，纯逻辑）：包列表的筛选（全部 / 已安装 / 可更新 / 未安装）、搜索（显示名 / 包标识 / 描述 / tag）、行状态解析与「描述优先本地 `package.json`、回落到索引」的取值规则。
+- EditMode 测试：`FangHubLayoutTests.cs` / `FangHubPageRegistryTests.cs` / `FangHubPrefsTests.cs` / `ExtensionPackageCatalogTests.cs`。
 - `Documentation~/FangHub.md`；`目录规范.md` / `扩展包分发.md` / `架构总览.md` / `快速开始.md` / `README.md` 同步。
 
 ### Changed
 
-- 编辑器入口收敛为**唯一**：`Tools/Fang Framework/Extension Packages` 菜单项删除，扩展包安装改为 FangHub 内的「扩展包」页。
+- **「扩展包」页改成包中心（侧栏标题「框架与扩展」）**：布局对齐 `com.fang.framework.ui` 的 UI 页 —— 菜单栏（`索引 ▾` / 刷新 / 右侧状态标签）+ 顶部**核心包一行**（版本 · 来源 + 更新按钮）+ 左右分栏 + 分栏下方的「索引设置（高级）」折叠区。
+  - **核心包可更新**：与扩展包同一套规则 —— `Embedded` 不给按钮（只显示「内嵌（本仓库开发）」），`Git` 且索引版本更高时给「更新」（`Client.Add` 新 tag）。
+  - **左栏**只列扩展包：列表头 `扩展包（n）` + 状态筛选下拉（全部 / 已安装 / 可更新 / 未安装）+ 搜索框，下面一行摘要；行是「标记 + 显示名 + `包标识 · 索引 x / 本地 y`」两行样式。
+  - **操作按钮移到右栏详情**（列表只负责选中）：详情 = 头部（显示名 / 包标识 / 状态行）+ 默认折叠的「基本信息」（显示名 / 包标识 / 索引版本 / 本地版本 / 来源 / 最低引擎 / 仓库路径 / tag）+ 描述 + 操作（安装 / 更新 / 卸载 + 定位 `package.json`）；内嵌包给出「不提供安装 / 卸载」说明。
+  - **描述优先本地已装包的 `package.json`，回落到索引 `packages.json`**；选中项 / 筛选 / 搜索存 `FangHubPageState`（scope = 页 id），索引地址仍存 `FangEditorPrefs` 的 `Fang.Framework.ExtensionPackages.IndexUrl`。
+  - 页 id `framework-extension-packages` 与类名 `ExtensionPackagesPage` 不变（布局存档按 id，改名零收益）。
+- 核心包版本 `0.5.0` → `0.5.1`。
+- 编辑器入口收敛为**唯一**：`Tools/Fang Framework/Extension Packages` 菜单项删除，扩展包安装改为 FangHub 内的「框架与扩展」页。
 - Hub 窗口仍是 UI Toolkit 纯 C# 建树（不引 UXML / USS）；IMGUI 页用 `IMGUIContainer` + `ScrollView` 承载，且 **PlayMode 下不渲染**（避免常驻窗口每帧重绘重量级工具页叠加 Game 视图 GPU 负载）。
 
 ### Removed

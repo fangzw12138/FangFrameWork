@@ -3,7 +3,7 @@
 核心包内的**编辑器工具枢纽**：一个窗口，左侧按分组列出工具页，右侧渲染选中页。
 扩展包用「属性 + 接口」声明自己的编辑器页面，FangHub 自动发现 —— **扩展包零注册代码，核心包永不引用扩展包**。
 
-入口：`Tools/Fang Framework/Fang Hub`。核心包自带的「扩展包」页（索引 + 安装 / 更新 / 卸载）也在 Hub 里，不再单独开窗口。
+入口：`Tools/Fang Framework/Fang Hub`。核心包自带的「框架与扩展」页（包中心：核心包更新 + 扩展包索引 / 安装 / 更新 / 卸载）也在 Hub 里，不再单独开窗口。
 
 ## 一、类型清单
 
@@ -20,7 +20,7 @@
 | `FangHubLayoutStore` | `Editor/Hub` | 静态类 | 布局持久化：`JsonUtility` ↔ `EditorPrefs` |
 | `FangHubPageState` | `Editor/Hub` | 静态类 | 给页面存自己的输入 / 选项状态 |
 | `FangEditorPrefs` | `Editor` | 静态类 | 工程 token + 键前缀，保证同机多工程互不串 |
-| `ExtensionPackagesPage` | `Editor/Hub/Pages` | 页面 | 内置「扩展包」页，逻辑仍走 `ExtensionPackageIndex` / `ExtensionPackageInstaller` |
+| `ExtensionPackagesPage` | `Editor/Hub/Pages` | 页面 | 内置「框架与扩展」页（包中心）：顶部核心包一行 + 左栏扩展包列表（状态筛选 / 搜索）+ 右栏详情与操作，逻辑走 `ExtensionPackageIndex` / `ExtensionPackageCatalog` / `ExtensionPackageInstaller` |
 
 分层与 `Editor/` 的既有约定一致：**纯逻辑（可单测，不碰 UI）** / **接触 UI**（`FangHubWindow`、`ExtensionPackagesPage`）。
 
@@ -167,13 +167,14 @@ FangHubPageState.SetInt("audio-clips", "type", 1);
 
 ## 七、测试
 
-`Tests/Editor/` 三个文件，EditMode 运行：
+`Tests/Editor/` 四个文件，EditMode 运行：
 
 | 文件 | 覆盖 |
 | --- | --- |
 | `FangHubLayoutTests.cs` | 默认分组与排序、`Reconcile` 补新页 / 不复活已删页 / 容忍未知 id、增删条目、组内与跨组排序的索引修正、删组退未分配、分组排序、重命名与折叠 |
 | `FangHubPageRegistryTests.cs` | 内置页被发现（元数据逐项断言）、三类跳过规则（无页面接口 / 无渲染接口 / 抽象类）、`BuildView` 的分组顺序、未知 id、搜索过滤与空分组处理 |
 | `FangHubPrefsTests.cs` | 键格式（前缀 + 工程 token + scope + key）、`FangHubPageState` 三类值往返与默认值、布局的 `JsonUtility` 往返、非法 JSON 抛 `ArgumentException`（`FangHubLayoutStore` 的回落依据） |
+| `ExtensionPackageCatalogTests.cs` | 包列表的四种状态筛选、搜索（显示名 / 包标识 / 描述 / tag，不区分大小写）、描述「本地优先、回落索引」、行状态组合、保持索引顺序、读临时 `package.json` |
 
 两处刻意的取舍：
 

@@ -15,7 +15,7 @@ namespace Fang.Framework.Editor.Tests
             var page = FangHubPageRegistry.Discover().FirstOrDefault(entry => entry.Id == "framework-extension-packages");
 
             Assert.IsNotNull(page);
-            Assert.AreEqual("扩展包", page.Title);
+            Assert.AreEqual("框架与扩展", page.Title);
             Assert.AreEqual("Framework", page.Category);
             Assert.AreEqual(0, page.Order);
             Assert.AreEqual(typeof(ExtensionPackagesPage), page.PageType);

@@ -33,7 +33,7 @@
 ```json
 {
   "dependencies": {
-    "com.fang.framework": "https://github.com/fangzw12138/FangFrameWork.git?path=/Packages/com.fang.framework#com.fang.framework/v0.5.0"
+    "com.fang.framework": "https://github.com/fangzw12138/FangFrameWork.git?path=/Packages/com.fang.framework#com.fang.framework/v0.5.1"
   }
 }
 ```
@@ -53,16 +53,16 @@
 
 ### 装扩展包
 
-**方式一：FangHub 的扩展包页**（推荐）
+**方式一：FangHub 的「框架与扩展」页**（推荐）
 
-`Tools/Fang Framework/Fang Hub` → 侧栏点「扩展包」→ 点「刷新」→ 点「安装」。扩展包页会比对索引版本与本地版本，给出安装 / 更新 / 卸载按钮，并在核心包未装时禁用按钮。
+`Tools/Fang Framework/Fang Hub` → 侧栏点「框架与扩展」→ 左栏选中扩展包 → 右栏点「安装」。页面顶部一行是核心包（可更新框架包），左栏可按下拉筛选（全部 / 已安装 / 可更新 / 未安装）与搜索，右栏详情给出安装 / 更新 / 卸载按钮，并在核心包未装时禁用按钮。
 
 **方式二：手写 `Packages/manifest.json`**
 
 ```json
 {
   "dependencies": {
-    "com.fang.framework": "https://github.com/fangzw12138/FangFrameWork.git?path=/Packages/com.fang.framework#com.fang.framework/v0.5.0",
+    "com.fang.framework": "https://github.com/fangzw12138/FangFrameWork.git?path=/Packages/com.fang.framework#com.fang.framework/v0.5.1",
     "com.fang.framework.eventbus": "https://github.com/fangzw12138/FangFrameWork.git?path=/Packages/com.fang.framework.eventbus#com.fang.framework.eventbus/v0.1.0"
   }
 }
@@ -70,8 +70,8 @@
 
 两个决定性事实（详见 `Documentation~/扩展包分发.md`）：
 
-1. **Unity 不检测 git 依赖更新** —— git 依赖解析后锁进 `packages-lock.json`，升级只能重新 `Client.Add` 一个新 tag。更新检测由 FangHub 的扩展包页自己做。
-2. **UPM 不支持包内声明 git URL 依赖** —— 所以扩展包的 `dependencies` 是空对象，依赖靠 asmdef 引用 + 窗口前置检查 + 文档声明落地。
+1. **Unity 不检测 git 依赖更新** —— git 依赖解析后锁进 `packages-lock.json`，升级只能重新 `Client.Add` 一个新 tag。更新检测由 FangHub 的「框架与扩展」页自己做。
+2. **UPM 不支持包内声明 git URL 依赖** —— 所以扩展包的 `dependencies` 是空对象，依赖靠 asmdef 引用 + 页面前置检查 + 文档声明落地。
 
 扩展包索引是仓库根 `packages.json`，用 Unity 自带 `JsonUtility` 解析，零第三方依赖。
 
@@ -111,9 +111,9 @@
 | --- | --- |
 | `Tools/Fang Framework/Fang Hub` | 编辑器工具枢纽：侧栏按分组列出工具页，右侧渲染选中页。扩展包用 `[FangHubPage]` + `IFangHubPage` 声明自己的页面，`TypeCache` 自动发现 |
 
-内置页「扩展包」：拉索引、比对版本、装 / 更新 / 卸。
+内置页「框架与扩展」：包中心 —— 顶部一行是核心包（版本 · 来源 + 更新），左栏是扩展包列表（状态筛选 + 搜索），右栏是详情（描述 + 安装 / 更新 / 卸载 / 定位 `package.json`）。
 
-程序集 `Fang.Framework.Editor`。索引解析（`ExtensionPackageIndex`）、安装状态机（`ExtensionPackageInstaller`）、Hub 的页面扫描 / 布局 / 持久化都是纯逻辑、可单测；只有 `FangHubWindow` 与 `ExtensionPackagesPage` 接触 UI。
+程序集 `Fang.Framework.Editor`。索引解析（`ExtensionPackageIndex`）、包列表的筛选 / 搜索 / 行状态（`ExtensionPackageCatalog`）、安装状态机（`ExtensionPackageInstaller`）、Hub 的页面扫描 / 布局 / 持久化都是纯逻辑、可单测；只有 `FangHubWindow` 与 `ExtensionPackagesPage` 接触 UI。
 
 ## 许可证
 

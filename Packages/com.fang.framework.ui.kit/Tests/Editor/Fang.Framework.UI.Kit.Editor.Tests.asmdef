@@ -1,0 +1,29 @@
+{
+  "name": "Fang.Framework.UI.Kit.Editor.Tests",
+  "rootNamespace": "Fang.Framework.UI.Kit.Editor.Tests",
+  "references": [
+    "Fang.Framework",
+    "Fang.Framework.UI.Kit",
+    "Fang.Framework.UI.Kit.Editor",
+    "UnityEngine.UI",
+    "Unity.TextMeshPro",
+    "UnityEngine.TestRunner",
+    "UnityEditor.TestRunner"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": true,
+  "precompiledReferences": [
+    "nunit.framework.dll"
+  ],
+  "autoReferenced": false,
+  "defineConstraints": [
+    "UNITY_INCLUDE_TESTS"
+  ],
+  "versionDefines": [],
+  "noEngineReferences": false,
+  "testAssemblies": true
+}

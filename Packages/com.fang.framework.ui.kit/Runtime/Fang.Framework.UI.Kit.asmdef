@@ -1,0 +1,19 @@
+{
+  "name": "Fang.Framework.UI.Kit",
+  "rootNamespace": "Fang.Framework.UI.Kit",
+  "references": [
+    "Fang.Framework",
+    "Fang.Framework.UI",
+    "DOTween",
+    "Unity.TextMeshPro"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

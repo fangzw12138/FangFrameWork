@@ -16,6 +16,25 @@ namespace Fang.Framework.UI.Kit.Editor.Tests
             return go;
         }
 
+        public static T NewComponent<T>(string name) where T : Component
+        {
+            return NewGameObject(name).AddComponent<T>();
+        }
+
+        public static T Track<T>(T value) where T : UnityEngine.Object
+        {
+            Created.Add(value);
+            return value;
+        }
+
+        public static Sprite NewSprite(string name)
+        {
+            var texture = Track(new Texture2D(4, 4));
+            var sprite = Track(Sprite.Create(texture, new Rect(0f, 0f, 4f, 4f), new Vector2(0.5f, 0.5f)));
+            sprite.name = name;
+            return sprite;
+        }
+
         public static T NewToken<T>(string matchId = null) where T : TokenSo
         {
             var token = ScriptableObject.CreateInstance<T>();
@@ -101,6 +120,11 @@ namespace Fang.Framework.UI.Kit.Editor.Tests
         public static void SetInt(UnityEngine.Object target, string field, int value)
         {
             Edit(target, field, p => p.intValue = value);
+        }
+
+        public static void SetBool(UnityEngine.Object target, string field, bool value)
+        {
+            Edit(target, field, p => p.boolValue = value);
         }
 
         public static void SetColor(UnityEngine.Object target, string field, Color value)

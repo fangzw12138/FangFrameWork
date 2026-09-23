@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b8c22095195486a4590ba923db3d66a4, type: 3}
+  m_Name: ButtonSecondary
+  m_EditorClassIdentifier: Fang.Framework.UI.Kit::Fang.Framework.UI.Kit.ButtonTokenSo
+  _id: ButtonSecondary
+  _displayName: 
+  _description: 
+  _matchId: Button/Secondary
+  _backgroundSprite: {fileID: 0}
+  _useStates: 1
+  _states:
+    m_NormalColor: {r: 0.91, g: 0.93, b: 0.96, a: 1}
+    m_HighlightedColor: {r: 0.97, g: 0.98, b: 1, a: 1}
+    m_PressedColor: {r: 0.83, g: 0.87, b: 0.92, a: 1}
+    m_SelectedColor: {r: 0.91, g: 0.93, b: 0.96, a: 1}
+    m_DisabledColor: {r: 0.79, g: 0.83, b: 0.87, a: 1}
+    m_ColorMultiplier: 1
+    m_FadeDuration: 0.1
+  _label: {fileID: 0}
+  _icon: {fileID: 11400000, guid: e5bd16273d365244182c117e7f876dba, type: 2}
+  _onClick: {fileID: 0}
+  _onLocked: {fileID: 0}

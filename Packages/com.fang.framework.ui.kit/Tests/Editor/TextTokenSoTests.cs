@@ -119,6 +119,105 @@ namespace Fang.Framework.UI.Kit.Editor.Tests
             Assert.AreEqual(Color.red, image.color);
         }
 
+        [Test]
+        public void Text_composite_token_targets_tmp_text()
+        {
+            var token = KitTestSetup.NewToken<TextTokenSo>();
+
+            Assert.AreEqual(typeof(TMP_Text), token.TargetType);
+            Assert.IsTrue(token.Accepts(NewText()));
+            Assert.IsFalse(token.Accepts(null));
+            Assert.IsFalse(token.Accepts(NewImage()));
+        }
+
+        [Test]
+        public void Text_composite_writes_only_the_items_whose_toggle_is_on()
+        {
+            var text = NewText();
+            text.fontSize = 10f;
+            text.fontStyle = FontStyles.Bold;
+            text.lineSpacing = 3f;
+            text.color = Color.red;
+
+            var token = KitTestSetup.NewToken<TextTokenSo>();
+            KitTestSetup.SetBool(token, "_useFontSize", true);
+            KitTestSetup.SetFloat(token, "_fontSize", 44f);
+            KitTestSetup.SetBool(token, "_useStyle", false);
+            KitTestSetup.SetInt(token, "_style", (int)FontStyles.Italic);
+            KitTestSetup.SetBool(token, "_useLineSpacing", false);
+            KitTestSetup.SetFloat(token, "_lineSpacing", 9f);
+            KitTestSetup.SetBool(token, "_useColor", false);
+            KitTestSetup.SetColor(token, "_color", Color.blue);
+
+            token.Apply(text);
+
+            Assert.AreEqual(44f, text.fontSize);
+            Assert.AreEqual(FontStyles.Bold, text.fontStyle);
+            Assert.AreEqual(3f, text.lineSpacing);
+            Assert.AreEqual(Color.red, text.color);
+        }
+
+        [Test]
+        public void Text_composite_writes_the_font_when_it_is_set()
+        {
+            var font = FirstFontAsset();
+            if (font == null)
+            {
+                Assert.Ignore("工程里没有 TMP 字体资产，跳过。");
+            }
+
+            var text = NewText();
+            var token = KitTestSetup.NewToken<TextTokenSo>();
+            KitTestSetup.SetObject(token, "_font", font);
+
+            token.Apply(text);
+
+            Assert.AreSame(font, text.font);
+        }
+
+        [Test]
+        public void Text_composite_leaves_the_font_alone_when_it_is_empty()
+        {
+            var text = NewText();
+            var before = text.font;
+            var token = KitTestSetup.NewToken<TextTokenSo>();
+
+            token.Apply(text);
+
+            Assert.AreSame(before, text.font);
+        }
+
+        [Test]
+        public void Text_composite_writes_nothing_when_every_toggle_is_off()
+        {
+            var text = NewText();
+            text.fontSize = 10f;
+            text.lineSpacing = 3f;
+            text.color = Color.red;
+
+            var token = KitTestSetup.NewToken<TextTokenSo>();
+            KitTestSetup.SetFloat(token, "_fontSize", 44f);
+            KitTestSetup.SetFloat(token, "_lineSpacing", 9f);
+            KitTestSetup.SetColor(token, "_color", Color.blue);
+
+            token.Apply(text);
+
+            Assert.AreEqual(10f, text.fontSize);
+            Assert.AreEqual(3f, text.lineSpacing);
+            Assert.AreEqual(Color.red, text.color);
+        }
+
+        [Test]
+        public void Text_composite_reports_an_error_for_a_non_text_target()
+        {
+            var image = NewImage();
+            var token = KitTestSetup.NewToken<TextTokenSo>();
+
+            LogAssert.Expect(LogType.Error, new Regex("target 类型不符"));
+
+            token.Apply(image);
+        }
+
         private static TMP_FontAsset FirstFontAsset()
         {
             var guids = UnityEditor.AssetDatabase.FindAssets("t:TMP_FontAsset");

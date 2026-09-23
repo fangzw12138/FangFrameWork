@@ -19,11 +19,11 @@ MonoBehaviour:
   _backgroundSprite: {fileID: 0}
   _useStates: 1
   _states:
-    m_NormalColor: {r: 0.91, g: 0.93, b: 0.96, a: 1}
-    m_HighlightedColor: {r: 0.97, g: 0.98, b: 1, a: 1}
-    m_PressedColor: {r: 0.83, g: 0.87, b: 0.92, a: 1}
-    m_SelectedColor: {r: 0.91, g: 0.93, b: 0.96, a: 1}
-    m_DisabledColor: {r: 0.79, g: 0.83, b: 0.87, a: 1}
+    m_NormalColor: {r: 0.882, g: 0.91, b: 0.941, a: 1}
+    m_HighlightedColor: {r: 0.937, g: 0.957, b: 0.976, a: 1}
+    m_PressedColor: {r: 0.804, g: 0.847, b: 0.894, a: 1}
+    m_SelectedColor: {r: 0.882, g: 0.91, b: 0.941, a: 1}
+    m_DisabledColor: {r: 0.929, g: 0.941, b: 0.957, a: 1}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
   _label: {fileID: 0}

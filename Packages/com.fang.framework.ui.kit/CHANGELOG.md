@@ -1,5 +1,38 @@
 # Changelog
 
+## [0.2.1] - 2026-09-23
+
+### Changed
+
+**按 PC 基线重调字号与尺寸**（0.2.0 那套是移动端量级）。参考分辨率仍是 1920×1080 + `matchWidthOrHeight 0.5`，屏幕为 1080p 时 **1 UI 单位 = 1 像素**，所以下面都是像素值。
+
+| 项 | 0.2.0 | 0.2.1 |
+| --- | --- | --- |
+| 标题 | 56 | **28** |
+| 正文 | 32 | **16** |
+| 说明小字 | 22 | **12** |
+| 按钮文字 | 22 | **16** |
+| 按钮高 | 44 | **32** |
+| 图标槽 | 24×24 | **16×16** |
+| 标签槽 | 110×24 | **72×16** |
+| 按钮内边距 / 间距 | 14 / 8 | **10 / 4** |
+
+- 包内预制体默认值：`TextTitle` 48→24、`TextBody` 30→16、`TextCaption` 20→12、按钮文字 26→16；按钮 `sizeDelta` 160×48→120×32；文本预制体 `sizeDelta` 400×64/40/28→300×32/22/16。
+- 示例 token：`TitleText` 56→28、`BodyText` 32→16、`CaptionText` 22→12、`ButtonLabelText` 22→16。
+- `Sprites/ButtonBackground.png`：圆角 12→6，9 宫格 `border` 20→10。**必须与上面一起改**：`Image` 在 `Sliced` 下的 `preferredHeight` 等于 `border` 四边之和（原为 40），按钮根的 `ContentSizeFitter` 取最大值 —— border 太大时按钮**压不到 32 高**（实测卡在 40，改字号和 padding 都无效）。改后四边和为 20。
+- 示例场景：两列位置收紧（`Buttons` −140→−80、`Texts` −440→−260），列间距 20→12；相机底色 `F0F2F7`→`FAFBFC`。
+- 示例 token `ButtonSecondary` 的 5 态颜色调深（normal `E8EDF5`→`E1E8F0`）：原来的浅底在 `F0F2F7` 页面上只差 8 级，几乎看不见。
+
+### Added
+
+- `Documentation~/控件库.md` §七 补「9 宫格底图的 `border` 决定控件最小尺寸」；`Documentation~/定制与升级.md` 补「换底图时注意 9 宫格的 border」与「尺寸基线」。
+
+### Fixed
+
+- 示例的 6 个 Prefab Variant 重新生成：清掉 0.2.0 落盘时被 `ContentSizeFitter` 写进根 `RectTransform` 的尺寸 override（Variant 里存的是 160×48，与基预制体的 120×32 不一致），同时保住「文字 / 图标形状走 Variant 覆盖」的演示。
+
+验证：refresh 0 error / 0 warning；ui.kit EditMode 104 项全绿；把 Game View 设成 **1920×1080**（scaleFactor = 1）实测 —— 按钮 112×32 / 36×32 / 92×32，正文 16px、标题 28px、说明 12px，主按钮 `4A8FD9`、次按钮 `E1E8F0`、文字按钮无底（`2E4A66`）。
+
 ## [0.2.0] - 2026-09-23
 
 ### Added

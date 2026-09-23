@@ -31,8 +31,8 @@
       "displayName": "UI Kit",
       "description": "开箱即用的 UI 控件库：控件 + 动效 + 粒子，只支持 URP。",
       "path": "/Packages/com.fang.framework.ui.kit",
-      "version": "0.2.0",
-      "tag": "com.fang.framework.ui.kit/v0.2.0",
+      "version": "0.2.1",
+      "tag": "com.fang.framework.ui.kit/v0.2.1",
       "unity": "2022.3"
     }
   ]

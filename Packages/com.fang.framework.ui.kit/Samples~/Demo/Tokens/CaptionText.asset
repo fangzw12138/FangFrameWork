@@ -18,7 +18,7 @@ MonoBehaviour:
   _matchId: Text/Caption
   _font: {fileID: 0}
   _useFontSize: 1
-  _fontSize: 22
+  _fontSize: 12
   _useStyle: 0
   _style: 0
   _useLineSpacing: 0

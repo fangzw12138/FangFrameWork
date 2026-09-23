@@ -34,11 +34,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1469451234161780662, guid: b5f9a53ba3ea6884ead84cd1f2a847f1, type: 3}
       propertyPath: m_SizeDelta.x
-      value: 400
+      value: 300
       objectReference: {fileID: 0}
     - target: {fileID: 1469451234161780662, guid: b5f9a53ba3ea6884ead84cd1f2a847f1, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 28
+      value: 16
       objectReference: {fileID: 0}
     - target: {fileID: 1469451234161780662, guid: b5f9a53ba3ea6884ead84cd1f2a847f1, type: 3}
       propertyPath: m_LocalPosition.x
@@ -93,10 +93,6 @@ PrefabInstance:
       value: "\u8BF4\u660E Caption"
       objectReference: {fileID: 0}
     - target: {fileID: 2840230497215447194, guid: b5f9a53ba3ea6884ead84cd1f2a847f1, type: 3}
-      propertyPath: m_fontSize
-      value: 22
-      objectReference: {fileID: 0}
-    - target: {fileID: 2840230497215447194, guid: b5f9a53ba3ea6884ead84cd1f2a847f1, type: 3}
       propertyPath: m_fontColor.b
       value: 0.62
       objectReference: {fileID: 0}
@@ -107,10 +103,6 @@ PrefabInstance:
     - target: {fileID: 2840230497215447194, guid: b5f9a53ba3ea6884ead84cd1f2a847f1, type: 3}
       propertyPath: m_fontColor.r
       value: 0.55
-      objectReference: {fileID: 0}
-    - target: {fileID: 2840230497215447194, guid: b5f9a53ba3ea6884ead84cd1f2a847f1, type: 3}
-      propertyPath: m_fontSizeBase
-      value: 22
       objectReference: {fileID: 0}
     - target: {fileID: 5824940490640734972, guid: b5f9a53ba3ea6884ead84cd1f2a847f1, type: 3}
       propertyPath: m_Name

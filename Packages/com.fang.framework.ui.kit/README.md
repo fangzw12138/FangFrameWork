@@ -59,7 +59,7 @@ DOTween 官方包**不带 asmdef**：核心是预编译 `DOTween.dll`（程序�
   "dependencies": {
     "com.fang.framework": "https://github.com/fangzw12138/FangFrameWork.git?path=/Packages/com.fang.framework#com.fang.framework/v0.5.1",
     "com.fang.framework.ui": "https://github.com/fangzw12138/FangFrameWork.git?path=/Packages/com.fang.framework.ui#com.fang.framework.ui/v0.1.0",
-    "com.fang.framework.ui.kit": "https://github.com/fangzw12138/FangFrameWork.git?path=/Packages/com.fang.framework.ui.kit#com.fang.framework.ui.kit/v0.2.0"
+    "com.fang.framework.ui.kit": "https://github.com/fangzw12138/FangFrameWork.git?path=/Packages/com.fang.framework.ui.kit#com.fang.framework.ui.kit/v0.2.1"
   }
 }
 ```

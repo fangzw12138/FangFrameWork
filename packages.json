@@ -34,6 +34,15 @@
       "version": "0.2.1",
       "tag": "com.fang.framework.ui.kit/v0.2.1",
       "unity": "2022.3"
+    },
+    {
+      "name": "com.fang.framework.configinspector",
+      "displayName": "Config Inspector",
+      "description": "在 Inspector 里展开 ConfigDataSo 引用字段，直接查看与编辑被引用的配置资产。",
+      "path": "/Packages/com.fang.framework.configinspector",
+      "version": "0.1.0",
+      "tag": "com.fang.framework.configinspector/v0.1.0",
+      "unity": "2022.3"
     }
   ]
 }

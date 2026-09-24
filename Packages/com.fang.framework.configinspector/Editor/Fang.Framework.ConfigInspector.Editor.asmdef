@@ -1,0 +1,19 @@
+{
+  "name": "Fang.Framework.ConfigInspector.Editor",
+  "rootNamespace": "Fang.Framework.ConfigInspector.Editor",
+  "references": [
+    "Fang.Framework",
+    "Fang.Framework.Editor"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": false,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

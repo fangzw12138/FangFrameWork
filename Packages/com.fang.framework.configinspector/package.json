@@ -1,0 +1,18 @@
+{
+  "name": "com.fang.framework.configinspector",
+  "version": "0.1.0",
+  "displayName": "Config Inspector",
+  "description": "在 Inspector 里展开 ConfigDataSo 引用字段，直接查看与编辑被引用的配置资产。",
+  "unity": "2022.3",
+  "keywords": [
+    "framework",
+    "fang",
+    "inspector",
+    "config",
+    "editor"
+  ],
+  "author": {
+    "name": "Fang"
+  },
+  "dependencies": {}
+}

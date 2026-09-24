@@ -1,0 +1,17 @@
+{
+    "name": "Fang.Framework.CommandConsole.Demo",
+    "rootNamespace": "Fang.Framework.CommandConsole.Demo",
+    "references": [
+        "Fang.Framework",
+        "Fang.Framework.CommandConsole"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

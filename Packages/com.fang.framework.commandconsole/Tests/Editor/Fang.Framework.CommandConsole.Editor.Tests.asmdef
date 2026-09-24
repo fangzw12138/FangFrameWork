@@ -1,0 +1,28 @@
+{
+  "name": "Fang.Framework.CommandConsole.Editor.Tests",
+  "rootNamespace": "Fang.Framework.CommandConsole.Editor.Tests",
+  "references": [
+    "Fang.Framework",
+    "Fang.Framework.CommandConsole",
+    "Fang.Framework.CommandConsole.Editor",
+    "UnityEngine.TestRunner",
+    "UnityEditor.TestRunner"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": true,
+  "precompiledReferences": [
+    "nunit.framework.dll",
+    "Newtonsoft.Json.dll"
+  ],
+  "autoReferenced": false,
+  "defineConstraints": [
+    "UNITY_INCLUDE_TESTS"
+  ],
+  "versionDefines": [],
+  "noEngineReferences": false,
+  "testAssemblies": true
+}

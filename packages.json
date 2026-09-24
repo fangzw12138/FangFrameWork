@@ -43,6 +43,15 @@
       "version": "0.1.0",
       "tag": "com.fang.framework.configinspector/v0.1.0",
       "unity": "2022.3"
+    },
+    {
+      "name": "com.fang.framework.commandconsole",
+      "displayName": "Command Console",
+      "description": "指令层：特性 + 扫描 + 注册表 + TCP 传输 + 游戏内/编辑器控制台 + 指令文档生成。",
+      "path": "/Packages/com.fang.framework.commandconsole",
+      "version": "0.1.0",
+      "tag": "com.fang.framework.commandconsole/v0.1.0",
+      "unity": "2022.3"
     }
   ]
 }

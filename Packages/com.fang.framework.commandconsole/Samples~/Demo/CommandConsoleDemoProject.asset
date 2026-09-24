@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2df88e3863556994db6c55afdb0cd290, type: 3}
+  m_Name: CommandConsoleDemoProject
+  m_EditorClassIdentifier: Fang.Framework.CommandConsole::Fang.Framework.CommandConsole.DebugProjectSo
+  _id: 
+  _displayName: 
+  _description: 
+  _autoStart: 1
+  _listenAddress: 127.0.0.1
+  _port: 7788
+  _consoleEnabled: 1
+  _consoleToggleKey: 282
+  _quickButtons:
+  - _label: "\u8BFB\u73A9\u5BB6\u72B6\u6001"
+    _commandLine: player_state
+  - _label: "\u751F\u6210 5 \u4E2A\u7BB1\u5B50"
+    _commandLine: world_spawn 5
+  - _label: "\u6E05\u7A7A\u7BB1\u5B50"
+    _commandLine: world_clear
+  _commandAssemblyNamePrefixes: []
+  _categoryOrder:
+  - builtin
+  - session
+  - player
+  - world
+  - demo
+  _docFolder: Assets/CommandConsoleDocs
+  _docFileName: DebugCommands.md
+  _docSplitByCategory: 1

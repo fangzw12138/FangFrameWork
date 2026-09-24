@@ -30,6 +30,9 @@ namespace Fang.Framework.UI.Kit.Editor
 
         private const string NotEnabledText = "（未启用）";
 
+        private const string PackageJsonPath = "Packages/com.fang.framework.ui.kit/package.json";
+        private const string SampleSceneName = "Demo.unity";
+
         private const float ListPaneWidth = 260f;
         private const float DetailLabelWidth = 92f;
 
@@ -122,6 +125,10 @@ namespace Fang.Framework.UI.Kit.Editor
             toolbar.Add(applyAllButton);
 
             toolbar.Add(new ToolbarButton(RefreshProjects) { text = "刷新" });
+
+            var importSample = new ToolbarButton(ImportSample) { text = "导入示例" };
+            importSample.tooltip = "把包内示例（Controls Demo）复制到 Assets/Samples；已导入过会覆盖那份副本。";
+            toolbar.Add(importSample);
 
             var spacer = new VisualElement();
             spacer.style.flexGrow = 1f;
@@ -755,6 +762,9 @@ namespace Fang.Framework.UI.Kit.Editor
             detailContent.Add(BuildSection("校验"));
             detailContent.Add(BuildTokenChecks(token, id));
 
+            detailContent.Add(BuildSection("操作"));
+            detailContent.Add(BuildTokenActions(id));
+
             detailContent.Add(BuildSection("token 配置（可直接编辑）"));
             detailContent.Add(BuildInspector(token));
         }
@@ -859,6 +869,36 @@ namespace Fang.Framework.UI.Kit.Editor
 
             row.Add(new Button(() => Ping(path)) { text = "定位预制体" });
             row.Add(new Button(() => OpenFolder(path)) { text = "打开目录" });
+
+            return row;
+        }
+
+        private VisualElement BuildTokenActions(string id)
+        {
+            var row = new VisualElement();
+            row.style.flexDirection = FlexDirection.Row;
+
+            var enabled = !string.IsNullOrEmpty(id);
+
+            var apply = new Button(() =>
+            {
+                if (string.IsNullOrEmpty(id))
+                {
+                    SetStatus("这条 token 还没填匹配 id，不能应用。");
+                    return;
+                }
+
+                ApplyOne(id);
+            })
+            {
+                text = "应用"
+            };
+
+            apply.SetEnabled(enabled);
+            apply.tooltip = enabled
+                ? "应用这个 id（范围 = 全项目里所有写这个 id 的地方）"
+                : "这条 token 还没填匹配 id，不参与匹配。";
+            row.Add(apply);
 
             return row;
         }
@@ -1132,6 +1172,75 @@ namespace Fang.Framework.UI.Kit.Editor
             }
 
             Refresh();
+        }
+
+        // ---------- 示例 ----------
+
+        private static bool TryFindSample(out UnityEditor.PackageManager.UI.Sample sample)
+        {
+            sample = default;
+
+            var info = UnityEditor.PackageManager.PackageInfo.FindForAssetPath(PackageJsonPath);
+            if (info == null)
+            {
+                return false;
+            }
+
+            foreach (var candidate in UnityEditor.PackageManager.UI.Sample.FindByPackage(info.name, info.version))
+            {
+                sample = candidate;
+                return true;
+            }
+
+            return false;
+        }
+
+        private void ImportSample()
+        {
+            if (!TryFindSample(out var sample))
+            {
+                SetStatus("没找到包内示例。");
+                return;
+            }
+
+            if (sample.isImported && !EditorUtility.DisplayDialog(
+                    "重新导入示例",
+                    "示例已经导入过：\n" + sample.importPath + "\n\n重新导入会覆盖这份副本里你自己的改动，确定继续？",
+                    "覆盖导入",
+                    "取消"))
+            {
+                return;
+            }
+
+            if (!sample.Import(
+                    UnityEditor.PackageManager.UI.Sample.ImportOptions.HideImportWindow
+                    | UnityEditor.PackageManager.UI.Sample.ImportOptions.OverridePreviousImports))
+            {
+                SetStatus("示例导入失败。");
+                return;
+            }
+
+            AssetDatabase.Refresh();
+            RefreshProjects();
+
+            var assetPath = ToAssetPath(sample.importPath);
+            SetStatus("示例已导入：" + assetPath);
+            Ping(assetPath + "/" + SampleSceneName);
+        }
+
+        private static string ToAssetPath(string absolutePath)
+        {
+            if (string.IsNullOrEmpty(absolutePath))
+            {
+                return string.Empty;
+            }
+
+            var path = absolutePath.Replace('\\', '/');
+            var dataPath = Application.dataPath.Replace('\\', '/');
+
+            return path.StartsWith(dataPath, StringComparison.OrdinalIgnoreCase)
+                ? "Assets" + path.Substring(dataPath.Length)
+                : path;
         }
 
         // ---------- 查找 ----------

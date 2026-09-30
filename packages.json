@@ -4,8 +4,8 @@
     "name": "com.fang.framework",
     "displayName": "Fang Framework",
     "path": "/Packages/com.fang.framework",
-    "version": "0.5.1",
-    "tag": "com.fang.framework/v0.5.1"
+    "version": "0.5.2",
+    "tag": "com.fang.framework/v0.5.2"
   },
   "packages": [
     {

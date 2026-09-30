@@ -35,6 +35,16 @@
 
 - **窗口在 `CreateGUI` 建树前被关闭时空引用**：`OnDisable()` → `DestroyPage()` 直接 `detailContent.Clear()`，而 `detailContent` 还没创建（窗口刚打开就被关掉、布局恢复时被销毁都会命中）。改为空值守卫，`ShowDetail()` 同样加守卫。
 
+## [0.5.2] - 2026-09-30
+
+### Fixed
+
+- **2022.3 / 团结引擎 1.6 上编译不过**：`ExtensionPackagesPage` 搜索框的 `_searchField.textEdition.placeholder` 是 Unity 6 才有的 UI Toolkit 成员（2022.3 的 `ITextEdition` 没有 `placeholder`），加 `#if UNITY_6000_0_OR_NEWER` 守卫。2022.3 上搜索框没有占位提示，其余行为不变。
+
+### Changed
+
+- 核心包版本 `0.5.1` → `0.5.2`。
+
 ## [0.5.0] - 2026-09-21
 
 ### Removed

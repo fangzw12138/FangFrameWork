@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.1.1] - 2026-09-30
+
+### Fixed
+
+- **2022.3 / 团结引擎 1.6 上编译不过**：控制台搜索框的 `searchField.textEdition.placeholder` 是 Unity 6 才有的 UI Toolkit 成员（2022.3 的 `ITextEdition` 没有 `placeholder`），加 `#if UNITY_6000_0_OR_NEWER` 守卫。2022.3 上搜索框没有占位提示，其余行为不变。
+
+### Changed
+
+- 包版本 `0.1.0` → `0.1.1`。
+
 ## [0.1.0] - 2026-09-24
 
 ### Added

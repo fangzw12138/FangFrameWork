@@ -205,7 +205,10 @@ namespace Fang.Framework.CommandConsole.Editor
             searchField.style.flexShrink = 1f;
             searchField.style.marginLeft = 6f;
             searchField.style.marginRight = 0f;
+            // 2022.3 / 团结引擎 1.6 的 UI Toolkit 没有 placeholder（ITextEdition 无该成员），只在有它的引擎上设置。
+#if UNITY_6000_0_OR_NEWER
             searchField.textEdition.placeholder = "搜索指令…";
+#endif
             searchField.RegisterValueChangedCallback(evt =>
             {
                 search = evt.newValue;

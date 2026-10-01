@@ -48,6 +48,7 @@ namespace Fang.Framework.UI.Kit.Editor
                 {
                     var match = matches[m];
                     var nodePath = BuildNodePath(match.transform, prefab.transform);
+                    var nodeIndex = NodeIndexOf(match);
                     var entries = match.Entries;
 
                     for (var e = 0; e < entries.Count; e++)
@@ -101,7 +102,7 @@ namespace Fang.Framework.UI.Kit.Editor
                             plan.Rows.Add(new UIKitApplyRow(
                                 prefabPath,
                                 nodePath,
-                                m,
+                                nodeIndex,
                                 e,
                                 entry.Id,
                                 entry.Target.GetType().Name,
@@ -217,6 +218,22 @@ namespace Fang.Framework.UI.Kit.Editor
             return applied;
         }
 
+        /// <summary>同一节点上第几个 TokenMatch（Apply 用它定位，两边必须是同一套编号）。</summary>
+        private static int NodeIndexOf(TokenMatch match)
+        {
+            var siblings = match.GetComponents<TokenMatch>();
+
+            for (var i = 0; i < siblings.Length; i++)
+            {
+                if (siblings[i] == match)
+                {
+                    return i;
+                }
+            }
+
+            return 0;
+        }
+
         /// <summary>节点相对根节点的路径；根节点自己返回空字符串。</summary>
         private static string BuildNodePath(Transform node, Transform root)
         {
@@ -230,12 +247,35 @@ namespace Fang.Framework.UI.Kit.Editor
 
             while (current != null && current != root)
             {
-                names.Add(current.name);
+                names.Add(Segment(current));
                 current = current.parent;
             }
 
             names.Reverse();
             return string.Join("/", names);
+        }
+
+        /// <summary>同级重名时写成 <c>名字#兄弟序号</c>，否则就是名字本身。</summary>
+        private static string Segment(Transform node)
+        {
+            var parent = node.parent;
+
+            if (parent == null)
+            {
+                return node.name;
+            }
+
+            var index = node.GetSiblingIndex();
+
+            for (var i = 0; i < parent.childCount; i++)
+            {
+                if (i != index && parent.GetChild(i).name == node.name)
+                {
+                    return node.name + "#" + index;
+                }
+            }
+
+            return node.name;
         }
 
         private static Transform ResolveNode(GameObject root, string nodePath)
@@ -245,7 +285,42 @@ namespace Fang.Framework.UI.Kit.Editor
                 return null;
             }
 
-            return string.IsNullOrEmpty(nodePath) ? root.transform : root.transform.Find(nodePath);
+            if (string.IsNullOrEmpty(nodePath))
+            {
+                return root.transform;
+            }
+
+            var current = root.transform;
+            var segments = nodePath.Split('/');
+
+            for (var i = 0; i < segments.Length; i++)
+            {
+                current = ResolveChild(current, segments[i]);
+
+                if (current == null)
+                {
+                    return null;
+                }
+            }
+
+            return current;
+        }
+
+        private static Transform ResolveChild(Transform parent, string segment)
+        {
+            var hash = segment.LastIndexOf('#');
+
+            if (hash > 0 && int.TryParse(segment.Substring(hash + 1), out var index))
+            {
+                var name = segment.Substring(0, hash);
+
+                if (index >= 0 && index < parent.childCount && parent.GetChild(index).name == name)
+                {
+                    return parent.GetChild(index);
+                }
+            }
+
+            return parent.Find(segment);
         }
     }
 }

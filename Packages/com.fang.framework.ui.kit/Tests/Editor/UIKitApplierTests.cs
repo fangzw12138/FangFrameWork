@@ -105,7 +105,7 @@ namespace Fang.Framework.UI.Kit.Editor.Tests
         [Test]
         public void Build_reports_a_prefab_without_a_match_and_an_empty_reference()
         {
-            var bare = new TestPrefab("Bare", false).Save("Bare");
+            var bare = new TestPrefab("Bare").Save("Bare");
             var project = KitTestSetup.NewProject();
             KitTestSetup.AddPrefab(project, bare);
             KitTestSetup.AddPrefab(project, null);
@@ -227,11 +227,136 @@ namespace Fang.Framework.UI.Kit.Editor.Tests
             StringAssert.Contains("找不到节点", errors[0]);
         }
 
-        private static TextMeshProUGUI LoadLabel(string prefabName)
+        [Test]
+        public void Apply_writes_rows_for_matches_on_different_nodes()
+        {
+            var builder = new TestPrefab("MultiNode");
+            var prefab = builder
+                .Entry("Text/Test", builder.Text)
+                .Match(builder.Root, "Color/Test", builder.RootImage)
+                .Save("MultiNode");
+
+            var size = KitTestSetup.NewToken<FontSizeTokenSo>("Text/Test");
+            KitTestSetup.SetFloat(size, "_fontSize", 77f);
+            var color = KitTestSetup.NewToken<ColorTokenSo>("Color/Test");
+            KitTestSetup.SetColor(color, "_color", Color.green);
+            var project = KitTestSetup.NewProject(size, color);
+            KitTestSetup.AddPrefab(project, prefab);
+
+            var plan = UIKitApplier.Build(project, null);
+
+            Assert.AreEqual(2, plan.Rows.Count);
+            Assert.AreEqual(0, plan.Skips.Count);
+
+            var labelRow = plan.Rows.Find(row => row.MatchId == "Text/Test");
+            Assert.IsNotNull(labelRow);
+            Assert.AreEqual(0, labelRow.MatchIndex);
+
+            var errors = new List<string>();
+            var applied = UIKitApplier.Apply(plan, errors);
+
+            Assert.AreEqual(2, applied);
+            Assert.AreEqual(0, errors.Count);
+
+            var written = LoadPrefab("MultiNode");
+            Assert.AreEqual(77f, written.transform.Find("Label").GetComponent<TextMeshProUGUI>().fontSize);
+            Assert.AreEqual(Color.green, written.GetComponent<Image>().color);
+        }
+
+        [Test]
+        public void Apply_writes_rows_for_two_matches_on_the_same_node()
+        {
+            var builder = new TestPrefab("TwinNode");
+            var prefab = builder
+                .Entry("Text/Test", builder.Text)
+                .Match(builder.Root, "Color/Root", builder.RootImage)
+                .ExtraMatch(builder.LabelObject, "Color/Label", builder.Text)
+                .Save("TwinNode");
+
+            var size = KitTestSetup.NewToken<FontSizeTokenSo>("Text/Test");
+            KitTestSetup.SetFloat(size, "_fontSize", 77f);
+            var labelColor = KitTestSetup.NewToken<ColorTokenSo>("Color/Label");
+            KitTestSetup.SetColor(labelColor, "_color", Color.green);
+            var rootColor = KitTestSetup.NewToken<ColorTokenSo>("Color/Root");
+            KitTestSetup.SetColor(rootColor, "_color", Color.red);
+            var project = KitTestSetup.NewProject(size, labelColor, rootColor);
+            KitTestSetup.AddPrefab(project, prefab);
+
+            var plan = UIKitApplier.Build(project, null);
+
+            Assert.AreEqual(3, plan.Rows.Count);
+            Assert.AreEqual(0, plan.Skips.Count);
+
+            var firstRow = plan.Rows.Find(row => row.NodePath == "Label" && row.MatchId == "Text/Test");
+            var secondRow = plan.Rows.Find(row => row.NodePath == "Label" && row.MatchId == "Color/Label");
+
+            Assert.IsNotNull(firstRow);
+            Assert.IsNotNull(secondRow);
+            Assert.AreEqual(0, firstRow.MatchIndex);
+            Assert.AreEqual(1, secondRow.MatchIndex);
+
+            var errors = new List<string>();
+            var applied = UIKitApplier.Apply(plan, errors);
+
+            Assert.AreEqual(3, applied);
+            Assert.AreEqual(0, errors.Count);
+
+            var written = LoadPrefab("TwinNode");
+            var label = written.transform.Find("Label").GetComponent<TextMeshProUGUI>();
+            Assert.AreEqual(77f, label.fontSize);
+            Assert.AreEqual(Color.green, label.color);
+            Assert.AreEqual(Color.red, written.GetComponent<Image>().color);
+        }
+
+        [Test]
+        public void Apply_targets_the_right_node_when_siblings_share_a_name()
+        {
+            var builder = new TestPrefab("TwinName");
+            builder.LabelObject.name = "Item";
+            builder.IconObject.name = "Item";
+
+            var prefab = builder
+                .Entry("Text/Test", builder.Text)
+                .Match(builder.IconObject, "Color/Test", builder.Icon)
+                .Save("TwinName");
+
+            var size = KitTestSetup.NewToken<FontSizeTokenSo>("Text/Test");
+            KitTestSetup.SetFloat(size, "_fontSize", 77f);
+            var color = KitTestSetup.NewToken<ColorTokenSo>("Color/Test");
+            KitTestSetup.SetColor(color, "_color", Color.green);
+            var project = KitTestSetup.NewProject(size, color);
+            KitTestSetup.AddPrefab(project, prefab);
+
+            var plan = UIKitApplier.Build(project, null);
+
+            Assert.AreEqual(2, plan.Rows.Count);
+            Assert.AreEqual(0, plan.Skips.Count);
+
+            var errors = new List<string>();
+            Assert.AreEqual(2, UIKitApplier.Apply(plan, errors));
+            Assert.AreEqual(0, errors.Count);
+
+            var written = LoadPrefab("TwinName");
+            var text = written.transform.GetChild(0);
+            var image = written.transform.GetChild(1);
+
+            Assert.AreEqual("Item", text.name);
+            Assert.AreEqual("Item", image.name);
+            Assert.AreEqual(77f, text.GetComponent<TextMeshProUGUI>().fontSize);
+            Assert.AreEqual(Color.white, text.GetComponent<TextMeshProUGUI>().color);
+            Assert.AreEqual(Color.green, image.GetComponent<Image>().color);
+        }
+
+        private static GameObject LoadPrefab(string prefabName)
         {
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(TestRoot + "/" + prefabName + ".prefab");
             Assert.IsNotNull(prefab, "找不到预制体：" + prefabName);
-            return prefab.transform.Find("Label").GetComponent<TextMeshProUGUI>();
+            return prefab;
+        }
+
+        private static TextMeshProUGUI LoadLabel(string prefabName)
+        {
+            return LoadPrefab(prefabName).transform.Find("Label").GetComponent<TextMeshProUGUI>();
         }
 
         private static void DeleteTestRoot()
@@ -242,14 +367,19 @@ namespace Fang.Framework.UI.Kit.Editor.Tests
             }
         }
 
-        /// <summary>搭一个带 Label(TMP_Text) / Icon(Image) 的测试预制体，条目指向它自己内部的组件。</summary>
+        /// <summary>搭一个带 Label(TMP_Text) / Icon(Image) / 根 Image 的测试预制体；条目按宿主节点分组写进该节点上的 TokenMatch。</summary>
         private sealed class TestPrefab
         {
-            private readonly List<(string Id, Component Target)> entries = new List<(string, Component)>();
+            private readonly List<(GameObject Host, string Id, Component Target)> entries =
+                new List<(GameObject, string, Component)>();
 
-            public TestPrefab(string name, bool withMatch = true)
+            private readonly List<(GameObject Host, string Id, Component Target)> extraEntries =
+                new List<(GameObject, string, Component)>();
+
+            public TestPrefab(string name)
             {
                 Root = new GameObject(name, typeof(RectTransform));
+                RootImage = Root.AddComponent<Image>();
 
                 var label = new GameObject("Label", typeof(RectTransform));
                 label.transform.SetParent(Root.transform, false);
@@ -259,42 +389,74 @@ namespace Fang.Framework.UI.Kit.Editor.Tests
                 var icon = new GameObject("Icon", typeof(RectTransform));
                 icon.transform.SetParent(Root.transform, false);
                 Icon = icon.AddComponent<Image>();
-
-                if (withMatch)
-                {
-                    label.AddComponent<TokenMatch>();
-                }
             }
 
             public GameObject Root { get; }
+
+            public Image RootImage { get; }
 
             public TextMeshProUGUI Text { get; }
 
             public Image Icon { get; }
 
+            public GameObject LabelObject => Text.gameObject;
+
+            public GameObject IconObject => Icon.gameObject;
+
+            /// <summary>条目挂在 Label 节点的那个 TokenMatch 上。</summary>
             public TestPrefab Entry(string id, Component target)
             {
-                entries.Add((id, target));
+                return Match(LabelObject, id, target);
+            }
+
+            /// <summary>条目挂在指定节点上（该节点共用一个 TokenMatch）。</summary>
+            public TestPrefab Match(GameObject host, string id, Component target)
+            {
+                entries.Add((host, id, target));
+                return this;
+            }
+
+            /// <summary>给指定节点再加一个 TokenMatch，用来测同节点多个匹配组件。</summary>
+            public TestPrefab ExtraMatch(GameObject host, string id, Component target)
+            {
+                extraEntries.Add((host, id, target));
                 return this;
             }
 
             public GameObject Save(string name)
             {
-                var match = Root.GetComponentInChildren<TokenMatch>(true);
-                if (match != null)
+                var hosts = new List<GameObject>();
+
+                for (var i = 0; i < entries.Count; i++)
                 {
-                    var serialized = new SerializedObject(match);
-                    var list = serialized.FindProperty("_entries");
-                    list.arraySize = entries.Count;
+                    if (!hosts.Contains(entries[i].Host))
+                    {
+                        hosts.Add(entries[i].Host);
+                    }
+                }
+
+                for (var h = 0; h < hosts.Count; h++)
+                {
+                    var host = hosts[h];
+                    var rows = new List<(string Id, Component Target)>();
 
                     for (var i = 0; i < entries.Count; i++)
                     {
-                        var element = list.GetArrayElementAtIndex(i);
-                        element.FindPropertyRelative("_id").stringValue = entries[i].Id;
-                        element.FindPropertyRelative("_target").objectReferenceValue = entries[i].Target;
+                        if (entries[i].Host == host)
+                        {
+                            rows.Add((entries[i].Id, entries[i].Target));
+                        }
                     }
 
-                    serialized.ApplyModifiedPropertiesWithoutUndo();
+                    WriteEntries(host.GetComponent<TokenMatch>() ?? host.AddComponent<TokenMatch>(), rows);
+                }
+
+                for (var i = 0; i < extraEntries.Count; i++)
+                {
+                    var extra = extraEntries[i];
+                    WriteEntries(
+                        extra.Host.AddComponent<TokenMatch>(),
+                        new List<(string Id, Component Target)> { (extra.Id, extra.Target) });
                 }
 
                 if (!AssetDatabase.IsValidFolder(TestRoot))
@@ -305,6 +467,22 @@ namespace Fang.Framework.UI.Kit.Editor.Tests
                 var prefab = PrefabUtility.SaveAsPrefabAsset(Root, TestRoot + "/" + name + ".prefab");
                 Object.DestroyImmediate(Root);
                 return prefab;
+            }
+
+            private static void WriteEntries(TokenMatch match, List<(string Id, Component Target)> rows)
+            {
+                var serialized = new SerializedObject(match);
+                var list = serialized.FindProperty("_entries");
+                list.arraySize = rows.Count;
+
+                for (var i = 0; i < rows.Count; i++)
+                {
+                    var element = list.GetArrayElementAtIndex(i);
+                    element.FindPropertyRelative("_id").stringValue = rows[i].Id;
+                    element.FindPropertyRelative("_target").objectReferenceValue = rows[i].Target;
+                }
+
+                serialized.ApplyModifiedPropertiesWithoutUndo();
             }
         }
     }

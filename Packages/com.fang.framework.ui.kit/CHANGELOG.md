@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.3.1] - 2026-10-01
+
+### Fixed
+
+- **`Switch` 的文字被压成竖排**：`LabelSlot` 的 `LayoutElement` 没填 `preferredWidth`（是 -1）。`HorizontalLayoutGroup` 的 `childControlWidth` 是按**子节点的 preferred 宽度**驱动子节点宽度的，而槽位节点自己不是 `ILayoutElement` 的实现者（只有 `LayoutElement`），所以宽度算出来是 0 —— 槽位里的文字被压成一行一个字（实测「S / w / i / t / c / h」）。现在 `LabelSlot` 给了 `preferredWidth 64 / minWidth 24`，标签文字设为 `NoWrap`，与包内按钮的 `LabelSlot`（`pref 72x16`）一致；文案更长时按需覆盖这两个值（在 Variant 上覆盖即可）。
+
+### Changed
+
+- 包版本 `0.3.0` → `0.3.1`。
+
 ## [0.3.0] - 2026-10-01
 
 ### Added

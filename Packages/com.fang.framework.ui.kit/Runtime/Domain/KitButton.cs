@@ -4,7 +4,7 @@ using UnityEngine.UI;
 
 namespace Fang.Framework.UI.Kit
 {
-    public sealed class KitButton : MonoBehaviour
+    public class KitButton : MonoBehaviour
     {
         [Tooltip("按钮底图。纯文字按钮没有底图，留空。")]
         [SerializeField] private Image _background;

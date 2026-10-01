@@ -1,5 +1,44 @@
 # Changelog
 
+## [0.3.0] - 2026-10-01
+
+### Added
+
+**9 个新控件**（包内预制体 + 运行时组件 + 组合 token），按 PC 基线（参考 1920×1080，1 UI 单位 = 1 像素）：
+
+| 控件 | 预制体 | 结构 | 匹配 id |
+| --- | --- | --- | --- |
+| 输入框 | `InputField` | 底 + `TMP_InputField` + 占位 + 可选前置图标 | `Field/Input`（组合） |
+| 下拉 | `Dropdown` | 底 + `TMP_Dropdown`（标题 / 箭头 / 列表模板，模板里含作原型的 Toggle 项） | `Field/Dropdown`（组合） |
+| 开关 | `Switch` | `Toggle` + 轨道 + 滑块 + 文字（横向布局 + ContentSizeFitter） | `Switch/Default`（组合） |
+| 滑条 | `Slider` | `Slider` + 底 + 填充 + 手柄 | `Slider/Default`（组合） |
+| 进度条 | `ProgressBar` | 底 + 填充（Filled）+ 数值文字 | `Progress/Background` `Progress/Fill` `Progress/Value` |
+| HUD 数值条 | `HudBar` | 图标 + 条 + 数值文字 | `Hud/Background` `Hud/Fill` `Hud/Icon` `Hud/Value` |
+| Toast | `Toast` | 9 宫格底 + `CanvasGroup` + 图标 + 消息 | `Toast/Background` `Toast/Icon` `Toast/Message` |
+| Tooltip | `Tooltip` | 9 宫格底 + 横向布局 + ContentSizeFitter（自适应） | `Tooltip/Background` `Tooltip/Text` |
+| 技能按钮 | `SkillButton` | 底 + `Button` + 图标 + 冷却遮罩 + 冷却秒 + 等级 | `Button/Primary`（复用）+ `Skill/Cooldown` `Skill/CooldownText` `Skill/Level` |
+
+- **运行时组件**：`KitInputField` / `KitDropdown` / `KitSwitch` / `KitSlider` / `KitProgress` / `KitSkillButton`（**继承 `KitButton`**）/ `KitToast` / `KitToastHost`（队列与回收）/ `KitTooltip`。它们只给**结构契约**（只读引用）与**最小接口**（`SetValue` / `SetState` / `SetCooldown` / `SetLevel` / `Show` / `Hide`），不接游戏逻辑。
+  `KitSkillButton` 继承 `KitButton` 的理由与「三种按钮共用一个类」同理：底 / 图标 / 文字 / 5 态完全同构，继承后 `Button/Primary` 这类组合 token 直接可用（`TargetType.IsInstanceOfType` 成立），只多三个槽位。为此 `KitButton` 去掉了 `sealed`（源码兼容）。
+- **组合 token 4 个**：`FieldTokenSo` / `DropdownTokenSo` / `SwitchTokenSo` / `SliderTokenSo`，与 `ButtonTokenSo` 同构：写底图 Sprite、5 态 `ColorBlock`、并**嵌套**原子化的 `TextTokenSo` / `IconTokenSo`。值类字段带 `bool` 开关，引用类字段「空 = 不管」。
+- **不新增原子 token 类**：`IconTokenSo` 本来就是「Image ← Sprite + 颜色」，所以进度条的底 / 填充、Toast / Tooltip 的底、技能按钮的冷却遮罩这些 Image 槽位一律复用它，靠**语义 id** 区分（`Documentation~/控件库.md` §四 的既有原则：差异靠不同的 token 资产表达，不靠不同的类）。**比例（`fillAmount`）是运行期数据不是主题**，因此没有 `FillTokenSo` 之类，走运行时接口。
+- 开关的开 / 关配色（轨道与滑块各两色）存在 `KitSwitch` 上、由 `SwitchTokenSo` 整组写入 —— 和 `ButtonTokenSo` 把 `ColorBlock` 写进按钮一样。Token 里用**一个** `_useColors` 开关表示「整组写 / 不碰」，因为这四个颜色是一个整体。
+- 示例扩到 **15 个 Variant + 27 条 token**（含 6 条按钮嵌套 + 13 条新控件嵌套的子 token），`Demo.unity` 加三列（`Fields` / `Bars` / `Popups`）。
+- 文档：`匹配规范.md` 补 8 个新 id 组；`控件库.md` 补新组合 token 与「Image 槽位复用 `IconTokenSo`」；`定制与升级.md` 补新控件尺寸基线；`README.md` / 示例 `README.md` 同步。
+
+### Changed
+
+- 包版本 `0.2.2` → `0.3.0`（新增控件属 minor）。
+- `KitButton` 去掉 `sealed`，以便 `KitSkillButton` 继承。
+
+### Fixed
+
+- **`UIKitApplier` 的 `MatchIndex` 语义不匹配（真 bug，会静默跳过）**：`Build` 里记的是 `GetComponentsInChildren<TokenMatch>()` 的**全预制体序号**，`Apply` 里却用 `node.GetComponents<TokenMatch>()[MatchIndex]`（**单节点**列表）去取 —— 只要一个预制体里的 `TokenMatch` 总数 ≥ 2（哪怕一个节点一个），**非首个节点**的行就会报「TokenMatch 数量对不上」并跳过。现在 `Build` 按**同一节点内**的序号编号，与 `Apply` 对齐；于是「每个预制体只留一个 `TokenMatch`、容器做成空壳」这条规避不再需要（`ProgressBar` / `HudBar` / `Toast` 本身就是多节点 `TokenMatch`）。
+- **同级重名兄弟会写错节点**：`BuildNodePath` 只用节点名拼路径、`ResolveNode` 用 `Transform.Find` 解析，两个同名兄弟永远命中第一个（写错对象且不报错）。现在**只有同级重名时**路径段才附兄弟序号（如 `Content/Item#2/Icon`），不重名时路径保持原样可读。
+- 回归测试 3 项：跨节点多个 `TokenMatch` 全部落盘、同一节点两个 `TokenMatch` 各写各的、同名兄弟各写各的。
+
+验证：refresh 0 error / 0 warning；ui.kit EditMode **107 项全绿**；示例「全体应用」26 条落盘、0 跳过、0 报错。
+
 ## [0.2.2] - 2026-09-30
 
 ### Fixed

@@ -1,6 +1,6 @@
 {
   "name": "com.fang.framework.ui.kit",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "displayName": "UI Kit",
   "description": "开箱即用的 UI 控件库：控件 + 动效 + 粒子，只支持 URP。",
   "unity": "2022.3",
@@ -19,7 +19,7 @@
   "samples": [
     {
       "displayName": "Controls Demo",
-      "description": "3 种按钮 + 3 种文本控件、示例 token 与演示场景。导入后可直接改。",
+      "description": "3 种按钮 + 3 种文本 + 9 个控件（表单 / 进度 / 提示 / 技能按钮）、示例 token 与演示场景。导入后可直接改。",
       "path": "Samples~/Demo"
     }
   ]

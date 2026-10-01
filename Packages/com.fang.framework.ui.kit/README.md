@@ -6,7 +6,7 @@
 
 **「只读」只对消费者成立** —— 把包放在工程 `Packages/` 下的**内嵌包**随便改（见 `Documentation~/定制与升级.md`）。
 
-想先看到效果：`Package Manager → UI Kit → Samples → Import` 导入 **Controls Demo**（3 种按钮 + 3 种文本 + 演示场景），见下面「示例」。
+想先看到效果：`Package Manager → UI Kit → Samples → Import` 导入 **Controls Demo**（3 种按钮 + 3 种文本 + 9 个控件 + 演示场景），见下面「示例」。
 
 ## 示例（Samples）
 
@@ -16,10 +16,10 @@
 
 ```text
 Assets/Samples/UI Kit/<包 version>/Controls Demo/
-├── Demo.unity                  3 按钮 + 3 文本，打开就能看
-├── UIKitDemoProject.asset      项目 SO：登记 6 个 Variant + 8 条 token
-├── Prefabs/                    6 个 Prefab Variant（引用包内基预制体）
-├── Tokens/                     10 条 token（含 2 条被组合 token 嵌套的）
+├── Demo.unity                  3 按钮 + 3 文本 + 9 控件（Fields / Bars / Popups 三列），打开就能看
+├── UIKitDemoProject.asset      项目 SO：登记 15 个 Variant + 27 条 token
+├── Prefabs/                    15 个 Prefab Variant（引用包内基预制体）
+├── Tokens/                     27 条 token + 15 条被组合 token 嵌套的
 └── README.md                   怎么用 / 怎么迁
 ```
 
@@ -59,7 +59,7 @@ DOTween 官方包**不带 asmdef**：核心是预编译 `DOTween.dll`（程序�
   "dependencies": {
     "com.fang.framework": "https://github.com/fangzw12138/FangFrameWork.git?path=/Packages/com.fang.framework#com.fang.framework/v0.5.1",
     "com.fang.framework.ui": "https://github.com/fangzw12138/FangFrameWork.git?path=/Packages/com.fang.framework.ui#com.fang.framework.ui/v0.1.0",
-    "com.fang.framework.ui.kit": "https://github.com/fangzw12138/FangFrameWork.git?path=/Packages/com.fang.framework.ui.kit#com.fang.framework.ui.kit/v0.2.1"
+    "com.fang.framework.ui.kit": "https://github.com/fangzw12138/FangFrameWork.git?path=/Packages/com.fang.framework.ui.kit#com.fang.framework.ui.kit/v0.3.0"
   }
 }
 ```
@@ -78,8 +78,8 @@ Packages/com.fang.framework.ui.kit/
 │   ├── 动效.md                          动效架构与播放机制（含实测结论）
 │   └── 定制与升级.md                    「包内只读」的机制、Variant vs 复制、升级迁移
 ├── Runtime/
-│   ├── Config/                         token 与动效资产
-│   ├── Domain/                         KitButton / TokenMatch
+│   ├── Config/                         token 资产（5 原子 + 7 组合）与动效资产
+│   ├── Domain/                         控件组件（KitButton / KitSkillButton / KitInputField / …）与 TokenMatch
 │   ├── Internal/                       校验
 │   ├── Fang.Framework.UI.Kit.asmdef    全平台，autoReferenced
 │   └── AssemblyInfo.cs
@@ -118,7 +118,7 @@ token 分两类：
 
 ## 用法
 
-1. 控件：做包内预制体的 **Prefab Variant**（`ButtonIconText` / `ButtonIcon` / `ButtonText` / `TextTitle` / `TextBody` / `TextCaption`），或直接用 `Samples~/Demo` 里导入的那 6 个。
+1. 控件：做包内预制体的 **Prefab Variant**（3 种按钮 + 3 种文本 + `InputField` / `Dropdown` / `Switch` / `Slider` / `ProgressBar` / `HudBar` / `Toast` / `Tooltip` / `SkillButton`），或直接用 `Samples~/Demo` 里导入的那 15 个。
 2. 建 token：`Tools/Fang Framework/Fang Hub → 控件库 → token 库 → ＋`（选类型 → 逐项填字段 → **手填匹配 id**），或 `Create > Fang Framework/UI Kit > …` 再手填 `MatchId`（`Text/Title`、`Button/Primary`…，见 `Documentation~/匹配规范.md`）。按钮用**组合** token（`Button/*`），文本 / 图标用**原子** token（`Text/*`、`Icon/*`）。
 3. 建项目配置：`控件库项目 ▾ → 新建控件库项目配置 SO…`，把要管的 prefab 与 token 登记进去。
 4. 在预制体节点上挂 `TokenMatch`，每条填一个匹配 id 与 `target` 组件（id 可手填，也可点「选择…」按项目 SO 挑）。按钮的槽位 `target` 填那个 **`KitButton`** 组件。
@@ -134,8 +134,9 @@ match.ApplyFrom(project);      // 逐条：GetTokens(id) → token.Apply(target)
 **已落地**：
 
 - 骨架与机制：匹配组件、项目配置 SO、校验、FangHub「控件库」页（组件库 / token 库、引导向导、统计、校验、全体应用与预览落盘）、`TokenMatch` 条目 id 选择器。
-- **v1 控件**：3 种按钮（图标 / 文本 / 图标+文本）+ 3 种文本（标题 / 正文 / 说明），6 个包内预制体 + 占位图。
-- **token**：5 个原子类 + 3 个组合类（`TextTokenSo` / `IconTokenSo` / `ButtonTokenSo`），组合可嵌套一层。
+- **控件（15 个包内预制体 + 占位图）**：3 种按钮（图标 / 文本 / 图标+文本）+ 3 种文本（标题 / 正文 / 说明）+ 9 个控件：输入框 / 下拉 / 开关 / 滑条 / 进度条 / HUD 数值条 / Toast / Tooltip / 技能按钮。
+- **运行时组件**：`KitButton` / `KitSkillButton` / `KitInputField` / `KitDropdown` / `KitSwitch` / `KitSlider` / `KitProgress` / `KitToast` / `KitToastHost` / `KitTooltip` —— 只给**结构契约**与**最小接口**（`SetValue` / `SetState` / `SetCooldown` / `Show` / `Hide`），不接游戏逻辑。
+- **token**：5 个原子类 + 7 个组合类（`TextTokenSo` / `IconTokenSo` / `ButtonTokenSo` / `FieldTokenSo` / `DropdownTokenSo` / `SwitchTokenSo` / `SliderTokenSo`），组合可嵌套一层。Image 槽位（底 / 填充 / 遮罩）一律复用 `IconTokenSo`，比例（`fillAmount`）是运行期数据、不做 token。
 - **动效架构**：`UiMotionSo` 资产 + `KitButton` 两个槽位（播放机制已实测，见 `Documentation~/动效.md`）。
 - **示例**：`Samples~/Demo`。
 

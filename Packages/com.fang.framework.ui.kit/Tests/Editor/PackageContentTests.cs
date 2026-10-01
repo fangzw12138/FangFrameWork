@@ -18,6 +18,14 @@ namespace Fang.Framework.UI.Kit.Editor.Tests
             "Color/Success", "Color/Warning", "Color/Danger", "Color/Disabled",
             "Icon/Primary", "Icon/Secondary",
             "Button/Primary", "Button/Secondary", "Button/Ghost",
+            "Field/Input", "Field/Dropdown",
+            "Switch/Default",
+            "Slider/Default",
+            "Progress/Background", "Progress/Fill", "Progress/Value",
+            "Hud/Background", "Hud/Fill", "Hud/Icon", "Hud/Value",
+            "Toast/Background", "Toast/Icon", "Toast/Message",
+            "Tooltip/Background", "Tooltip/Text",
+            "Skill/Cooldown", "Skill/CooldownText", "Skill/Level",
         };
 
         private static readonly string[] NestedDemoTokens = { "ButtonLabelText.asset", "ButtonIconToken.asset" };

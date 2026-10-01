@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d02ac11a377f30148b2e068b206548ba, type: 3}
+  m_Name: FieldInput
+  m_EditorClassIdentifier: Fang.Framework.UI.Kit::Fang.Framework.UI.Kit.FieldTokenSo
+  _id: FieldInput
+  _displayName: 
+  _description: 
+  _matchId: Field/Input
+  _background: {fileID: 11400000, guid: 9f73bc392d77f6d408cdf92cd1378bdb, type: 2}
+  _useStates: 1
+  _states:
+    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
+    m_HighlightedColor: {r: 1, g: 1, b: 1, a: 1}
+    m_PressedColor: {r: 0.92, g: 0.95, b: 0.99, a: 1}
+    m_SelectedColor: {r: 1, g: 1, b: 1, a: 1}
+    m_DisabledColor: {r: 0.9, g: 0.9, b: 0.9, a: 1}
+    m_ColorMultiplier: 1
+    m_FadeDuration: 0.1
+  _text: {fileID: 11400000, guid: 60edf32a49546ec4494dfc3870f82136, type: 2}
+  _placeholder: {fileID: 11400000, guid: 1e5a30b08cc375a469c1c2a9c52bfa94, type: 2}
+  _useCaretColor: 1
+  _caretColor: {r: 0.29, g: 0.56, b: 0.85, a: 1}
+  _useSelectionColor: 1
+  _selectionColor: {r: 0.29, g: 0.56, b: 0.85, a: 0.35}
+  _icon: {fileID: 11400000, guid: 5427586977c7f1549b8141cd807b6640, type: 2}

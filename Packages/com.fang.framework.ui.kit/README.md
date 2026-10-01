@@ -136,7 +136,7 @@ match.ApplyFrom(project);      // 逐条：GetTokens(id) → token.Apply(target)
 - 骨架与机制：匹配组件、项目配置 SO、校验、FangHub「控件库」页（组件库 / token 库、引导向导、统计、校验、全体应用与预览落盘）、`TokenMatch` 条目 id 选择器。
 - **控件（15 个包内预制体 + 占位图）**：3 种按钮（图标 / 文本 / 图标+文本）+ 3 种文本（标题 / 正文 / 说明）+ 9 个控件：输入框 / 下拉 / 开关 / 滑条 / 进度条 / HUD 数值条 / Toast / Tooltip / 技能按钮。
 - **运行时组件**：`KitButton` / `KitSkillButton` / `KitInputField` / `KitDropdown` / `KitSwitch` / `KitSlider` / `KitProgress` / `KitToast` / `KitToastHost` / `KitTooltip` —— 只给**结构契约**与**最小接口**（`SetValue` / `SetState` / `SetCooldown` / `Show` / `Hide`），不接游戏逻辑。
-- **token**：5 个原子类 + 7 个组合类（`TextTokenSo` / `IconTokenSo` / `ButtonTokenSo` / `FieldTokenSo` / `DropdownTokenSo` / `SwitchTokenSo` / `SliderTokenSo`），组合可嵌套一层。Image 槽位（底 / 填充 / 遮罩）一律复用 `IconTokenSo`，比例（`fillAmount`）是运行期数据、不做 token。
+- **token**：5 个原子类 + 7 个组合类（`TextTokenSo` / `IconTokenSo` / `ButtonTokenSo` / `FieldTokenSo` / `DropdownTokenSo` / `SwitchTokenSo` / `SliderTokenSo`），组合可嵌套一层。Image 槽位（底 / 填充 / 遮罩）一律复用 `IconTokenSo`，比例是运行期数据、不做 token。
 - **动效架构**：`UiMotionSo` 资产 + `KitButton` 两个槽位（播放机制已实测，见 `Documentation~/动效.md`）。
 - **示例**：`Samples~/Demo`。
 

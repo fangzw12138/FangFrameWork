@@ -1,9 +1,11 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Fang.Framework.UI.Kit.Editor.Tests
 {
@@ -167,6 +169,36 @@ namespace Fang.Framework.UI.Kit.Editor.Tests
 
             Assert.Greater(checkedReferences, 0, "示例里没有任何 GUID 引用，检查没生效。");
             CollectionAssert.IsEmpty(dangling, "示例里有断链引用：" + string.Join(", ", dangling));
+        }
+
+        [Test]
+        public void Linear_fills_stretch_through_anchors_instead_of_the_filled_type()
+        {
+            // Image 的 Filled 只发一个 quad、不认 9 宫格 border：横向填充会把圆角横向压扁、右端切成直角，
+            // 与底图（Sliced）的圆角对不上。线性填充一律走「Sliced + 锚点拉宽」，与 Unity 的 Slider 填充同款；
+            // 径向（技能按钮的冷却遮罩）才是 Filled 的正确用法。
+            foreach (var name in new[] { "ProgressBar", "HudBar" })
+            {
+                var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(PrefabPath(name));
+                Assert.IsNotNull(prefab, name);
+
+                foreach (var image in prefab.GetComponentsInChildren<Image>(true))
+                {
+                    var linearFill = image.type == Image.Type.Filled
+                        && (image.fillMethod == Image.FillMethod.Horizontal || image.fillMethod == Image.FillMethod.Vertical);
+                    Assert.IsFalse(linearFill, name + "/" + image.name + " 用了 Filled 横向填充，9 宫格圆角会被压扁");
+                }
+
+                var fill = prefab.GetComponentsInChildren<Image>(true).Single(i => i.name == "Fill");
+                Assert.AreEqual(Image.Type.Sliced, fill.type, name + " 的填充应该是 Sliced 的 9 宫格图");
+                Assert.AreEqual(0f, fill.rectTransform.anchorMin.x, name + " 的填充应该从左边起算");
+                Assert.Less(fill.rectTransform.anchorMax.x, 1f, name + " 的填充应该靠 anchorMax.x 表示比例，而不是拉满");
+            }
+
+            var mask = AssetDatabase.LoadAssetAtPath<GameObject>(PrefabPath("SkillButton"))
+                .GetComponentsInChildren<Image>(true).Single(i => i.name == "CooldownMask");
+            Assert.AreEqual(Image.Type.Filled, mask.type, "冷却遮罩是径向填充，仍用 Filled");
+            Assert.AreEqual(Image.FillMethod.Radial360, mask.fillMethod, "冷却遮罩是径向填充，仍用 Filled");
         }
 
         private static IEnumerable<GameObject> PackagePrefabs()

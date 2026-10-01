@@ -68,7 +68,7 @@ Demo/
 
 `Progress/Fill`、`Hud/Fill`、`Skill/Cooldown` 这些槽位挂的是 **`IconTokenSo`**：它本质就是「Image ← Sprite + 颜色」，不限于图标。包不为面 / 底 / 遮罩再拆 token 类 —— 差异靠不同的 token 资产表达，不靠不同的类（同 `Documentation~/控件库.md` §四）。
 
-**比例（`fillAmount`）不是 token**：它是运行期数据，用组件的接口写。
+**比例不是 token**：它是运行期数据，用组件的接口写（线性的进度 / 数值条写 `Fill.rectTransform.anchorMax.x`，技能按钮的径向遮罩写 `fillAmount`）。
 
 ## 9 个控件的槽位与接口
 

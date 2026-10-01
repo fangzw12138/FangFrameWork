@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.3.2] - 2026-10-01
+
+### Fixed
+
+- **进度条 / HUD 数值条的填充「图形不对」**：填充用的是 `Image` 的 `Filled` 横向 + `fillAmount`。`Filled` **不认 9 宫格 `border`** —— 它只发一个 quad，再按 `fillAmount` 把贴图连 UV 一起缩放：圆角被横向压扁（不再是圆弧），填充的右端还是硬切，与底图（`Sliced`、圆角正常）对不上，一眼就能看出来。现在填充改成 **`Sliced` + 锚点拉宽**：`ProgressBar` / `HudBar` 的 `Fill` 是 `Sliced` 的 9 宫格图，`anchorMin.x = 0`、`anchorMax.x = 比例`（默认仍是 50%），`KitProgress.SetValue` 写 `Fill.rectTransform.anchorMax.x`、`Normalized` 从锚点读回 —— 与 Unity 自己的 `Slider` 填充同款（`Slider` 的填充一直是这么做的，所以它没这个问题）。
+- `KitProgress` 保留 `Filled` 分支（`_fill.type == Filled` 时仍写 `fillAmount`）：别人已经做好的 `Filled` 预制体不会被这次改动弄坏。
+- 回归测试 3 项：包内线性填充不得出现「`Filled` + `Horizontal` / `Vertical`」（同时断言 `SkillButton` 的径向冷却遮罩仍是 `Filled`）、`KitProgress` 对 `Sliced` 填充写锚点并夹在 0..1、对 `Filled` 填充仍写 `fillAmount`。
+
+### Changed
+
+- 包版本 `0.3.1` → `0.3.2`。
+- 文档：`控件库.md`（`ProgressBar` 结构、`KitProgress` 契约行、比例说明）、`匹配规范.md` / `README.md` / 示例 `README.md` 的比例表述、`定制与升级.md` 新增「线性的填充别用 `Filled` 横向」。
+
+验证：refresh 0 error / 0 warning；ui.kit EditMode **110 项全绿**（107 + 3）。
+
 ## [0.3.1] - 2026-10-01
 
 ### Fixed

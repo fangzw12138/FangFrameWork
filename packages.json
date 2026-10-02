@@ -4,8 +4,8 @@
     "name": "com.fang.framework",
     "displayName": "Fang Framework",
     "path": "/Packages/com.fang.framework",
-    "version": "0.5.2",
-    "tag": "com.fang.framework/v0.5.2"
+    "version": "0.5.3",
+    "tag": "com.fang.framework/v0.5.3"
   },
   "packages": [
     {
@@ -51,6 +51,15 @@
       "path": "/Packages/com.fang.framework.commandconsole",
       "version": "0.1.1",
       "tag": "com.fang.framework.commandconsole/v0.1.1",
+      "unity": "2022.3"
+    },
+    {
+      "name": "com.fang.framework.async",
+      "displayName": "Fang Framework Async",
+      "description": "基于 UniTask 的异步 Scope / Service / Controller 族，与核心同步 Scope 族完全独立、不混用。",
+      "path": "/Packages/com.fang.framework.async",
+      "version": "0.1.0",
+      "tag": "com.fang.framework.async/v0.1.0",
       "unity": "2022.3"
     }
   ]

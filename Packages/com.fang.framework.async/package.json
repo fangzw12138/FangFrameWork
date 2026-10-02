@@ -1,0 +1,27 @@
+{
+  "name": "com.fang.framework.async",
+  "version": "0.1.0",
+  "displayName": "Fang Framework Async",
+  "description": "基于 UniTask 的异步 Scope / Service / Controller 族，与核心同步 Scope 族完全独立、不混用。",
+  "unity": "2022.3",
+  "keywords": [
+    "framework",
+    "fang",
+    "async",
+    "unitask",
+    "scope"
+  ],
+  "author": {
+    "name": "Fang"
+  },
+  "dependencies": {
+    "com.cysharp.unitask": "2.5.11"
+  },
+  "samples": [
+    {
+      "displayName": "Loading Transition",
+      "description": "整棵异步族的最小可运行范式：App / Title / Game / Scene 四层异步 Scope，InitDriver 折算子树进度，加载画面只订阅事件、零轮询。",
+      "path": "Samples~/LoadingTransition"
+    }
+  ]
+}

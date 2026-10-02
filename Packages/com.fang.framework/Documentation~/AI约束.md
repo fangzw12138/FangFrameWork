@@ -19,8 +19,9 @@
 13. **`Scope` / `Service` / `Controller` 不写 Unity 消息方法。** 不出现 `Awake` / `Start` / `Update` / `FixedUpdate` / `LateUpdate` / `OnEnable` / `OnDisable` / `OnDestroy`。生命周期只走 `ILifecycle` / `ITickable` / `IFixedTickable`，由使用方显式调 `Scope.OnInit` / `Tick` / `FixedTick` / `OnDispose`。框架不抢 Unity 回调，也不提供宿主 MonoBehaviour。**Unity 接触面（`[SerializeField]` / `Instantiate` / 协程 / 音效）落在视觉脚本 `XxxVisual` 与使用方自己写的宿主上**，见 `表现层规范.md`。
 14. **框架不销毁 GameObject。** `RemoveService<T>()` 与 `OnDispose()` 只做注销与钩子回调；服务物体与子 Scope 物体留给使用方或 Unity 层级回收。不写 `DestroyObject` 这类辅助方法。
 15. **`Scope` 有 `IsInitialized` 状态，但没有就绪门槛。** 不重新引入 `Build()` / `Register()` / `Resolve()` / 自定义异常类型。`IsInitialized` 只作状态查询，`AddService` / `RemoveService` / `GetService` 都不检查它。
+16. **核心 Runtime 不含异步基类，也不出现 `UniTask`。** 异步 Scope / Service / Controller 族在扩展包 `com.fang.framework.async`（那是**唯一**允许依赖 `com.cysharp.unitask` 的包；核心包永远不允许）。两个族**不继承、不混用**：一棵 scope 树要么整棵同步族、要么整棵异步族。具体到本包的三个硬点：`Scope` / `Service` / `Controller` 上不得出现任何 `UniTask` 成员；`Runtime/Fang.Framework.asmdef` 的 `references` 保持为空；`package.json` 的 `dependencies` 保持为空对象。这条是第 1 条（零第三方依赖）在「异步能力」上的具体化。
 
-以上第 3、7、12 条由 `Tests/Runtime/DomainContractTests.cs` 反射守住；第 13、15 条同样有反射契约（不声明 Unity 消息方法、成员面不含 `Dispose` / `IsDisposed`）；改动核心类型后必须重跑测试。第 8 条的表现侧无法用类型反射守住（视觉脚本是普通 `MonoBehaviour`，没有基类可断言），靠评审检查点。
+以上第 3、7、12 条由 `Tests/Runtime/DomainContractTests.cs` 反射守住；第 13、15 条同样有反射契约（不声明 Unity 消息方法、成员面不含 `Dispose` / `IsDisposed`）；改动核心类型后必须重跑测试。第 8 条的表现侧无法用类型反射守住（视觉脚本是普通 `MonoBehaviour`，没有基类可断言），靠评审检查点；第 16 条同样靠评审检查点（`Fang.Framework` 程序集不引用 `UniTask`、asmdef `references` 为空、`dependencies` 为空对象三处一起看）。
 
 ## 二、Data 写入规则
 

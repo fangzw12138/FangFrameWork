@@ -358,6 +358,7 @@ namespace Fang.Framework.Editor.Hub.Pages
             _coreState.style.color = canUpdate ? WarnColor : DimColor;
             _coreAction.style.display = canUpdate ? DisplayStyle.Flex : DisplayStyle.None;
             _coreAction.SetEnabled(canUpdate && !_installer.IsBusy);
+            _coreAction.tooltip = "安装时会自动配置 " + UnitaskDependency.PackageName + " 的 OpenUPM 注册表。";
             _coreRow.tooltip = _core.Description;
         }
 
@@ -558,6 +559,7 @@ namespace Fang.Framework.Editor.Hub.Pages
             }
 
             group.Add(row1);
+            group.Add(BuildMessage(DescribeUnitaskDependency()));
 
             if (!_coreInstalled)
             {
@@ -568,6 +570,14 @@ namespace Fang.Framework.Editor.Hub.Pages
             }
 
             return group;
+        }
+
+        private string DescribeUnitaskDependency()
+        {
+            return _installer.TryGetInstalled(UnitaskDependency.PackageName, out var unitask)
+                ? "依赖 " + UnitaskDependency.PackageName + " " + unitask.version + "：已就绪。"
+                : "依赖 " + UnitaskDependency.PackageName + " " + UnitaskDependency.Version
+                    + "：安装时会自动写入 OpenUPM 注册表并安装。";
         }
 
         private void OnPackageAction(ExtensionPackageRow row)

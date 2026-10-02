@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.5.3] - 2026-10-02
+
+### Added
+
+- `Editor/UnitaskDependency.cs`：「框架与扩展」页安装带 UniTask 依赖的扩展包（`com.fang.framework.async`）前，给消费工程的 `Packages/manifest.json` **定点补** OpenUPM scoped registry —— 只在「完全没有 scopedRegistries」时于 `"dependencies"` 行前插入标准块；已有 OpenUPM 且 scopes 含本包则一个字节都不动；已有别的 `scopedRegistries` 则不改写、报错指路手动步骤。写前存原文，联网 resolve 失败自动回滚。
+- `ExtensionPackageInstaller` 的依赖前置链：安装前检查 `com.cysharp.unitask`，缺则「补注册表 → 解析 → 装依赖 → 再装目标包」；「框架与扩展」页详情新增依赖行，失败时把 UPM 原始错误显示到状态区。
+- EditMode 测试 `Tests/Editor/UnitaskDependencyTests.cs`（6 项，覆盖定点插入、不动已配置、拒绝改写、缺 dependencies 等分支）。
+- 文档：`AI约束.md` 新增第 16 条（核心 Runtime 不含异步基类、不出现 `UniTask`；两族不继承、不混用）；`架构总览.md` §十 能力表与已落地列表、`快速开始.md` §二 指向 `com.fang.framework.async`；`扩展包分发.md` 事实 2 与 `目录规范.md` §3.2/§3.3 **订正**「扩展包 `dependencies`」的通则。
+
+### Changed
+
+- 核心包版本 `0.5.2` → `0.5.3`。**Runtime 零改动**（`Scope` / `Service` / `Controller` / `Data` / `ConfigDataSo` 与 `0.5.2` 一致），硬约束第 1 条（零第三方依赖）**不修订** —— 本次改动全在 Editor 侧与文档。
+- 「扩展包 `dependencies` 留空对象」订正为「**只写 registry 能回答的『包名 + 版本』**」：注册表类第三方照写（`commandconsole` 的 `com.unity.nuget.newtonsoft-json`、`async` 的 `com.cysharp.unitask`），**核心包本身与另一个按 git URL 分发的包永远不写**；Asset Store 类第三方（`ui.kit` 的 DOTween、`fmodaudio` 的 FMOD）只在 asmdef 的 `references` 里引用、不进 `dependencies`。
+
 ## [Unreleased]
 
 ### Added

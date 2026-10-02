@@ -1,0 +1,20 @@
+{
+    "name": "Fang.Framework.Async.LoadingTransition",
+    "rootNamespace": "Fang.Framework.Async.LoadingTransition",
+    "references": [
+        "Fang.Framework",
+        "Fang.Framework.Async",
+        "UniTask",
+        "UnityEngine.UI",
+        "Unity.TextMeshPro"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

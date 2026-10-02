@@ -30,12 +30,7 @@ namespace Fang.Framework.Editor
             var request = Client.List(true, true);
             BeginPoll(request, () =>
             {
-                _installed.Clear();
-                foreach (var package in request.Result)
-                {
-                    _installed[package.name] = package;
-                }
-
+                ApplyInstalled(request);
                 Status = completedMessage ?? string.Empty;
             });
         }
@@ -64,12 +59,80 @@ namespace Fang.Framework.Editor
                 return;
             }
 
+            SetStatus("正在检查依赖：" + UnitaskDependency.PackageName);
+            var request = Client.List(true, true);
+            BeginPoll(request, () => InstallAfterDependencyCheck(packageName, url, request));
+        }
+
+        private void InstallAfterDependencyCheck(string packageName, string url, ListRequest request)
+        {
+            ApplyInstalled(request);
+
+            if (_installed.ContainsKey(UnitaskDependency.PackageName))
+            {
+                InstallPackage(packageName, url);
+                return;
+            }
+
+            bool changed;
+            string error;
+            if (!UnitaskDependency.TryEnsureRegistry(out changed, out error))
+            {
+                SetStatus("安装已中止：" + error);
+                return;
+            }
+
+            if (!changed)
+            {
+                InstallUnitask(packageName, url);
+                return;
+            }
+
+            SetStatus("已写入 OpenUPM 注册表，正在解析…");
+            var resolve = Client.List(false, true);
+            BeginPoll(resolve, () =>
+            {
+                UnitaskDependency.Commit();
+                InstallUnitask(packageName, url);
+            }, message =>
+            {
+                string restoreError;
+                UnitaskDependency.TryRestore(out restoreError);
+                SetStatus(string.IsNullOrEmpty(restoreError)
+                    ? "安装已中止：OpenUPM 注册表未生效（" + message + "），manifest.json 已还原。"
+                    : "安装已中止：OpenUPM 注册表未生效（" + message + "），且" + restoreError);
+            });
+        }
+
+        private void InstallUnitask(string packageName, string url)
+        {
+            SetStatus("正在安装依赖：" + UnitaskDependency.Identifier);
+            var request = Client.Add(UnitaskDependency.Identifier);
+            BeginPoll(request, () => InstallPackage(packageName, url), message =>
+            {
+                SetStatus("安装失败：" + UnitaskDependency.PackageName + "：" + message
+                    + "（可参考「快速开始 → 首次安装」手动装依赖）");
+            });
+        }
+
+        private void InstallPackage(string packageName, string url)
+        {
             SetStatus("正在安装：" + packageName);
-            BeginPoll(Client.Add(url), () =>
+            var request = Client.Add(url);
+            BeginPoll(request, () =>
             {
                 AssetDatabase.Refresh();
                 RefreshInstalledPackages("已安装 " + packageName + "。");
             });
+        }
+
+        private void ApplyInstalled(ListRequest request)
+        {
+            _installed.Clear();
+            foreach (var package in request.Result)
+            {
+                _installed[package.name] = package;
+            }
         }
 
         public void Remove(string packageName)

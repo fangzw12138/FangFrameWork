@@ -207,6 +207,15 @@ namespace Fang.Framework.Async
 
         private void DestroySelf()
         {
+            // Unity may already have torn this object down (the host scope was destroyed first,
+            // or the editor stopped play mode) while the async disposal chain was still awaiting.
+            // Touching gameObject then throws MissingReferenceException, which the fire-and-forget
+            // disposal surfaces as an unobserved task exception.
+            if (this == null)
+            {
+                return;
+            }
+
             if (Application.isPlaying)
             {
                 Destroy(gameObject);

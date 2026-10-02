@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.1.1] - 2026-10-02
+
+### Fixed
+
+- `AsyncScope.DestroySelf()`：自毁前先判 `this == null`。Unity 可能已在自毁链等待期间销毁了本对象（宿主 scope 先被销毁，或编辑器停止 Play），此时访问 `gameObject` 会抛 `MissingReferenceException`；该异常由 fire-and-forget 的释放链吞下，最终以 UniTask 未观察异常（`UniTaskScheduler.PublishUnobservedTaskException`）的形式在控制台爆出。现在这种情况下直接跳过自毁。
+
 ## [0.1.0] - 2026-10-02
 
 ### Added

@@ -1,6 +1,6 @@
 {
   "name": "com.fang.framework.async",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "displayName": "Fang Framework Async",
   "description": "基于 UniTask 的异步 Scope / Service / Controller 族，与核心同步 Scope 族完全独立、不混用。",
   "unity": "2022.3",

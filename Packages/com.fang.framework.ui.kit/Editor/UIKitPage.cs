@@ -67,6 +67,8 @@ namespace Fang.Framework.UI.Kit.Editor
         private string selectedPrefabPath = string.Empty;
         private string selectedTokenPath = string.Empty;
         private SerializedObject inspectorSerializedObject;
+        private VisualElement inspectorElement;
+        private bool inspectorNeedsRebuild;
 
         public void OnInitialize(FangHubWindow window)
         {
@@ -98,11 +100,32 @@ namespace Fang.Framework.UI.Kit.Editor
             root.Add(BuildTitleRow());
             root.Add(BuildSplit());
 
-            root.RegisterCallback<DetachFromPanelEvent>(_ => DisposeInspector());
+            root.RegisterCallback<DetachFromPanelEvent>(OnDetachedFromPanel);
+            root.RegisterCallback<AttachToPanelEvent>(OnAttachedToPanel);
 
             RebuildProjectChoices();
             Refresh();
             return root;
+        }
+
+        // 停靠 / 拖出 Fang Hub 窗口时，Unity 会把整棵树从旧 panel 摘下来再挂到新 panel。
+        // 必须先摘掉绑着 SerializedObject 的 Inspector 才能释放它；否则重新挂载时
+        // Unity 的绑定会去读已释放的对象并抛 NullReferenceException，窗口就此半挂。
+        private void OnDetachedFromPanel(DetachFromPanelEvent evt)
+        {
+            DetachInspector();
+            inspectorNeedsRebuild = true;
+        }
+
+        private void OnAttachedToPanel(AttachToPanelEvent evt)
+        {
+            if (!inspectorNeedsRebuild)
+            {
+                return;
+            }
+
+            inspectorNeedsRebuild = false;
+            RebuildDetail();
         }
 
         // ---------- 骨架 ----------
@@ -679,7 +702,7 @@ namespace Fang.Framework.UI.Kit.Editor
                 return;
             }
 
-            DisposeInspector();
+            DetachInspector();
             detailContent.Clear();
 
             if (selectedProject == null)
@@ -1395,9 +1418,21 @@ namespace Fang.Framework.UI.Kit.Editor
             }
 
             inspectorSerializedObject = new SerializedObject(asset);
-            var inspector = new InspectorElement(inspectorSerializedObject);
-            inspector.style.marginTop = 2f;
-            return inspector;
+            inspectorElement = new InspectorElement(inspectorSerializedObject);
+            inspectorElement.style.marginTop = 2f;
+            return inspectorElement;
+        }
+
+        /// <summary>先摘元素再释放 SerializedObject，顺序不能反。</summary>
+        private void DetachInspector()
+        {
+            if (inspectorElement != null)
+            {
+                inspectorElement.RemoveFromHierarchy();
+                inspectorElement = null;
+            }
+
+            DisposeInspector();
         }
 
         private void DisposeInspector()

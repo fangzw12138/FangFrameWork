@@ -41,6 +41,8 @@ namespace Fang.Framework.UI.Editor
         private VisualElement detailContent;
         private string selectedPanelId;
         private SerializedObject inspectorSerializedObject;
+        private VisualElement inspectorElement;
+        private bool inspectorNeedsRebuild;
 
         public void OnInitialize(FangHubWindow window)
         {
@@ -64,15 +66,36 @@ namespace Fang.Framework.UI.Editor
             root.Add(BuildSplit());
 
             UIPanelPrefabQueue.PrefabCreated += OnPrefabCreated;
-            root.RegisterCallback<DetachFromPanelEvent>(_ =>
-            {
-                UIPanelPrefabQueue.PrefabCreated -= OnPrefabCreated;
-                DisposeInspector();
-            });
+            root.RegisterCallback<DetachFromPanelEvent>(OnDetachedFromPanel);
+            root.RegisterCallback<AttachToPanelEvent>(OnAttachedToPanel);
 
             RebuildProjectChoices();
             Refresh();
             return root;
+        }
+
+        // 停靠 / 拖出 Fang Hub 窗口时，Unity 会把整棵树从旧 panel 摘下来再挂到新 panel。
+        // 必须先摘掉绑着 SerializedObject 的 Inspector 才能释放它；否则重新挂载时
+        // Unity 的绑定会去读已释放的对象并抛 NullReferenceException，窗口就此半挂。
+        private void OnDetachedFromPanel(DetachFromPanelEvent evt)
+        {
+            UIPanelPrefabQueue.PrefabCreated -= OnPrefabCreated;
+            DetachInspector();
+            inspectorNeedsRebuild = true;
+        }
+
+        private void OnAttachedToPanel(AttachToPanelEvent evt)
+        {
+            UIPanelPrefabQueue.PrefabCreated -= OnPrefabCreated;
+            UIPanelPrefabQueue.PrefabCreated += OnPrefabCreated;
+
+            if (!inspectorNeedsRebuild)
+            {
+                return;
+            }
+
+            inspectorNeedsRebuild = false;
+            RebuildDetail();
         }
 
         private void OnPrefabCreated()
@@ -484,7 +507,7 @@ namespace Fang.Framework.UI.Editor
                 return;
             }
 
-            DisposeInspector();
+            DetachInspector();
             detailContent.Clear();
 
             var info = FindSelectedInfo();
@@ -599,9 +622,21 @@ namespace Fang.Framework.UI.Editor
             }
 
             inspectorSerializedObject = new SerializedObject(info.Config);
-            var inspector = new InspectorElement(inspectorSerializedObject);
-            inspector.style.marginTop = 2f;
-            return inspector;
+            inspectorElement = new InspectorElement(inspectorSerializedObject);
+            inspectorElement.style.marginTop = 2f;
+            return inspectorElement;
+        }
+
+        /// <summary>先摘元素再释放 SerializedObject，顺序不能反。</summary>
+        private void DetachInspector()
+        {
+            if (inspectorElement != null)
+            {
+                inspectorElement.RemoveFromHierarchy();
+                inspectorElement = null;
+            }
+
+            DisposeInspector();
         }
 
         private void DisposeInspector()

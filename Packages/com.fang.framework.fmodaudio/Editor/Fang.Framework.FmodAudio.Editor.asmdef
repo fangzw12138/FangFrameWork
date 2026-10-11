@@ -1,0 +1,22 @@
+{
+  "name": "Fang.Framework.FmodAudio.Editor",
+  "rootNamespace": "Fang.Framework.FmodAudio.Editor",
+  "references": [
+    "Fang.Framework",
+    "Fang.Framework.Editor",
+    "Fang.Framework.FmodAudio",
+    "FMODUnity",
+    "FMODUnityEditor"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": false,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

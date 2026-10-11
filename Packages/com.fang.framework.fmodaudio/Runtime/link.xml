@@ -1,0 +1,5 @@
+<linker>
+  <assembly fullname="FMODUnity" preserve="all" />
+  <assembly fullname="FMODUnityResonance" preserve="all" />
+  <assembly fullname="FMODUnityHaptics" preserve="all" />
+</linker>

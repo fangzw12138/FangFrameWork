@@ -1,0 +1,18 @@
+{
+  "name": "com.fang.framework.fmodaudio",
+  "version": "0.1.0",
+  "displayName": "FMOD Audio",
+  "description": "FMOD Studio 音频：可控播放句柄、一次性音效、通道与总线音量、静音与暂停。需要工程先装 FMOD for Unity 2.03+（本包硬依赖 FMODUnity / FMODUnityEditor）。",
+  "unity": "2022.3",
+  "keywords": [
+    "framework",
+    "fang",
+    "fmod",
+    "audio",
+    "sound"
+  ],
+  "author": {
+    "name": "Fang"
+  },
+  "dependencies": {}
+}

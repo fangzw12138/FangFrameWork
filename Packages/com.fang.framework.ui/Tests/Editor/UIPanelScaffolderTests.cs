@@ -183,6 +183,23 @@ namespace Fang.Framework.UI.Editor.Tests
         }
 
         [Test]
+        public void CreatePanel_skips_existing_files_without_overwriting_them()
+        {
+            var paths = new UIPanelScaffoldPaths(_project, "Hud");
+            EnsureFolder(paths.ScriptFolderPath);
+
+            const string HandWritten = "// hand written controller";
+            File.WriteAllText(Path.GetFullPath(paths.ControllerScriptPath), HandWritten);
+
+            var result = UIPanelScaffolder.CreatePanel(_project, "Hud", UIPanelTrack.VisualTree);
+
+            Assert.IsTrue(result.Success, result.ToStatusMessage());
+            StringAssert.Contains("文件已存在，跳过不覆盖", result.ToStatusMessage());
+            Assert.AreEqual(HandWritten, File.ReadAllText(Path.GetFullPath(paths.ControllerScriptPath)));
+            Assert.IsTrue(File.Exists(Path.GetFullPath(paths.DataScriptPath)));
+        }
+
+        [Test]
         public void CreatePanel_rejects_an_invalid_panel_name()
         {
             var result = UIPanelScaffolder.CreatePanel(_project, "Bad Name", UIPanelTrack.Prefab);

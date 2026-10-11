@@ -155,26 +155,39 @@ namespace Fang.Framework.UI.Editor
             if (visualTree)
             {
                 EnsureFolder(paths.VisualTreeFolderPath);
-                WriteText(paths.UxmlPath, UIPanelTemplateSource.BuildPanelUxml(paths.PanelName), result);
-                WriteText(paths.UssPath, UIPanelTemplateSource.BuildPanelUss(paths.PanelName), result);
-                AssetDatabase.ImportAsset(paths.UxmlPath);
-                AssetDatabase.ImportAsset(paths.UssPath);
+
+                if (TryWriteText(paths.UxmlPath, UIPanelTemplateSource.BuildPanelUxml(paths.PanelName), result))
+                {
+                    AssetDatabase.ImportAsset(paths.UxmlPath);
+                }
+
+                if (TryWriteText(paths.UssPath, UIPanelTemplateSource.BuildPanelUss(paths.PanelName), result))
+                {
+                    AssetDatabase.ImportAsset(paths.UssPath);
+                }
             }
 
-            WriteText(paths.DataScriptPath, UIPanelTemplateSource.BuildDataScript(namespaceName, paths.DataTypeName, configTypeName), result);
-            WriteText(
-                paths.ControllerScriptPath,
-                UIPanelTemplateSource.BuildControllerScript(
-                    namespaceName,
-                    paths.ControllerTypeName,
-                    paths.DataTypeName,
-                    baseTypeName,
-                    configTypeName,
-                    visualTree),
-                result);
+            if (TryWriteText(
+                    paths.DataScriptPath,
+                    UIPanelTemplateSource.BuildDataScript(namespaceName, paths.DataTypeName, configTypeName),
+                    result))
+            {
+                AssetDatabase.ImportAsset(paths.DataScriptPath);
+            }
 
-            AssetDatabase.ImportAsset(paths.DataScriptPath);
-            AssetDatabase.ImportAsset(paths.ControllerScriptPath);
+            if (TryWriteText(
+                    paths.ControllerScriptPath,
+                    UIPanelTemplateSource.BuildControllerScript(
+                        namespaceName,
+                        paths.ControllerTypeName,
+                        paths.DataTypeName,
+                        baseTypeName,
+                        configTypeName,
+                        visualTree),
+                    result))
+            {
+                AssetDatabase.ImportAsset(paths.ControllerScriptPath);
+            }
 
             CreateConfigAsset(paths, options, result);
             RegisterPanel(project, paths, result);
@@ -218,6 +231,17 @@ namespace Fang.Framework.UI.Editor
 
             EnsureFolder(paths.PanelPrefabFolderPath);
 
+            var existingPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(paths.PrefabPath);
+            if (existingPrefab != null)
+            {
+                BindPrefab(config, existingPrefab);
+                AssetDatabase.SaveAssets();
+
+                result.Success = true;
+                result.Add("预制体已存在，未覆盖，仅回填配置引用：" + paths.PrefabPath);
+                return result;
+            }
+
             var root = new GameObject(paths.PanelName, typeof(RectTransform));
             try
             {
@@ -236,12 +260,12 @@ namespace Fang.Framework.UI.Editor
                     return result;
                 }
 
+                AssetDatabase.SaveAssets();
+                AssetDatabase.ImportAsset(paths.PrefabPath, ImportAssetOptions.ForceSynchronousImport);
+
                 result.CreatedPaths.Add(paths.PrefabPath);
 
-                var serialized = new SerializedObject(config);
-                serialized.FindProperty("_prefab").objectReferenceValue = prefab;
-                serialized.ApplyModifiedPropertiesWithoutUndo();
-                EditorUtility.SetDirty(config);
+                BindPrefab(config, prefab);
             }
             finally
             {
@@ -250,9 +274,23 @@ namespace Fang.Framework.UI.Editor
 
             AssetDatabase.SaveAssets();
 
+            if (EditorUtility.IsDirty(config))
+            {
+                result.Add("配置回填未落盘，稍后重试：" + paths.ConfigPath);
+                return result;
+            }
+
             result.Success = true;
             result.Add("预制体已生成：" + paths.PrefabPath);
             return result;
+        }
+
+        private static void BindPrefab(UIPrefabPanelConfigDataSo config, GameObject prefab)
+        {
+            var serialized = new SerializedObject(config);
+            serialized.FindProperty("_prefab").objectReferenceValue = prefab;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+            EditorUtility.SetDirty(config);
         }
 
         public static List<string> GetDeletionPreview(UIProjectConfigDataSo project, UIPanelConfigDataSo config)
@@ -627,10 +665,22 @@ namespace Fang.Framework.UI.Editor
             }
         }
 
-        private static void WriteText(string assetPath, string content, UIPanelScaffoldResult result)
+        private static bool TryWriteText(string assetPath, string content, UIPanelScaffoldResult result)
         {
+            if (string.IsNullOrEmpty(assetPath))
+            {
+                return false;
+            }
+
+            if (File.Exists(Path.GetFullPath(assetPath)))
+            {
+                result.Add("文件已存在，跳过不覆盖：" + assetPath);
+                return false;
+            }
+
             File.WriteAllText(Path.GetFullPath(assetPath), content);
             result.CreatedPaths.Add(assetPath);
+            return true;
         }
 
         private static void DeleteAsset(string assetPath, UIPanelScaffoldResult result)

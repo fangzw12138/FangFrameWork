@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.1.1] - 2026-10-11
+
+### Fixed
+
+- `ConfigDataSoFieldDrawer`：Unity 6.5 起 `Object.GetInstanceID()` 被弃用为错误（CS0619），导致该包整体编译失败（Cannot compile scripts）。展开链改用 64 位稳定实例 ID（`GetStableId`，Unity 6000.5+ 走 `EntityId.ToULong(obj.GetEntityId())`），6000.5 以前的 Unity 行为不变。
+
 ## [0.1.0] - 2026-09-24
 
 ### Added

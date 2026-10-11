@@ -25,10 +25,10 @@ namespace Fang.Framework.ConfigInspector.Editor
         private static readonly Color WarnColor = new Color(1f, 0.8f, 0.3f);
 
         /// <summary>
-        /// 当前正在展开的资产（instanceID）链。进出必须配对 —— 这是绘制期的递归守卫，
-        /// 漏掉一次移除会让后续字段被误判成循环引用。
+        /// 当前正在展开的资产（稳定实例 ID，见 <see cref="GetStableId"/>）链。进出必须配对 ——
+        /// 这是绘制期的递归守卫，漏掉一次移除会让后续字段被误判成循环引用。
         /// </summary>
-        private static readonly HashSet<int> s_expandedChain = new HashSet<int>();
+        private static readonly HashSet<long> s_expandedChain = new HashSet<long>();
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
@@ -53,7 +53,7 @@ namespace Fang.Framework.ConfigInspector.Editor
                 position.width,
                 EditorGUIUtility.singleLineHeight);
 
-            var instanceId = target.GetInstanceID();
+            var instanceId = GetStableId(target);
             if (!TryEnter(instanceId, out var circular))
             {
                 EditorGUI.LabelField(contentRect, circular ? CircularText : MaxDepthText);
@@ -115,7 +115,7 @@ namespace Fang.Framework.ConfigInspector.Editor
 
             height += EditorGUIUtility.standardVerticalSpacing;
 
-            var instanceId = target.GetInstanceID();
+            var instanceId = GetStableId(target);
             if (!TryEnter(instanceId, out _))
             {
                 return height + EditorGUIUtility.singleLineHeight;
@@ -221,7 +221,7 @@ namespace Fang.Framework.ConfigInspector.Editor
                     return;
                 }
 
-                var instanceId = value.GetInstanceID();
+                var instanceId = GetStableId(value);
                 if (!TryEnter(instanceId, out var circular))
                 {
                     content.Add(BuildHint(
@@ -288,9 +288,24 @@ namespace Fang.Framework.ConfigInspector.Editor
         }
 
         /// <summary>
+        /// 资产的稳定实例 ID。Unity 6.5 起 int 版实例 ID API 被弃用为错误（CS0619），
+        /// 需改用 64 位 <see cref="EntityId"/>；更早的 Unity 仍走 int 实例 ID（隐式拓宽为 long）。
+        /// </summary>
+        private static long GetStableId(Object obj)
+        {
+#if UNITY_6000_5_OR_NEWER
+            return unchecked((long)EntityId.ToULong(obj.GetEntityId()));
+#else
+#pragma warning disable CS0618
+            return obj.GetInstanceID();
+#pragma warning restore CS0618
+#endif
+        }
+
+        /// <summary>
         /// 进入展开链。已被链上某个祖先引用（循环）或已达最大深度时返回 false。
         /// </summary>
-        private static bool TryEnter(int instanceId, out bool circular)
+        private static bool TryEnter(long instanceId, out bool circular)
         {
             circular = s_expandedChain.Contains(instanceId);
 

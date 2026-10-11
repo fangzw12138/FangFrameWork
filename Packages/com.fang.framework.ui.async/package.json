@@ -1,0 +1,21 @@
+{
+  "name": "com.fang.framework.ui.async",
+  "version": "0.1.0",
+  "displayName": "Fang Framework Async UI",
+  "description": "建立在异步 Scope 上的 UI 面板扩展包：UGUI 与 UI Toolkit 双轨、面板栈与层排序。零反射，UIService 由 AsyncScope 托管。",
+  "unity": "2022.3",
+  "keywords": [
+    "framework",
+    "fang",
+    "ui",
+    "async",
+    "unitask",
+    "panel"
+  ],
+  "author": {
+    "name": "Fang"
+  },
+  "dependencies": {
+    "com.cysharp.unitask": "2.5.11"
+  }
+}

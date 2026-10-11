@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <ui:VisualElement name="root" style="flex-grow: 1;">
+        <ui:Label text="UIAsyncTestPanel" name="caption" />
+    </ui:VisualElement>
+</ui:UXML>

@@ -1,0 +1,22 @@
+{
+  "name": "Fang.Framework.UI.Async.TestDoubles",
+  "rootNamespace": "Fang.Framework.UI.Async.Tests",
+  "references": [
+    "Fang.Framework",
+    "Fang.Framework.Async",
+    "Fang.Framework.UI.Async",
+    "UniTask"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": false,
+  "defineConstraints": [
+    "UNITY_INCLUDE_TESTS"
+  ],
+  "versionDefines": [],
+  "noEngineReferences": false,
+  "testAssemblies": true
+}

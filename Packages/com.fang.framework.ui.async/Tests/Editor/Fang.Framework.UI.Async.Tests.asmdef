@@ -1,0 +1,30 @@
+{
+  "name": "Fang.Framework.UI.Async.Tests",
+  "rootNamespace": "Fang.Framework.UI.Async.Tests",
+  "references": [
+    "Fang.Framework",
+    "Fang.Framework.Async",
+    "Fang.Framework.UI.Async",
+    "Fang.Framework.UI.Async.TestDoubles",
+    "UniTask",
+    "UnityEngine.UI",
+    "UnityEngine.TestRunner",
+    "UnityEditor.TestRunner"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": true,
+  "precompiledReferences": [
+    "nunit.framework.dll"
+  ],
+  "autoReferenced": false,
+  "defineConstraints": [
+    "UNITY_INCLUDE_TESTS"
+  ],
+  "versionDefines": [],
+  "noEngineReferences": false,
+  "testAssemblies": true
+}

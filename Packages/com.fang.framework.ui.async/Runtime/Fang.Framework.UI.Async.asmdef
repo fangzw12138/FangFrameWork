@@ -1,0 +1,19 @@
+{
+  "name": "Fang.Framework.UI.Async",
+  "rootNamespace": "Fang.Framework.UI.Async",
+  "references": [
+    "Fang.Framework",
+    "Fang.Framework.Async",
+    "UniTask",
+    "UnityEngine.UI"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

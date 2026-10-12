@@ -1,0 +1,21 @@
+{
+  "name": "com.fang.framework.eventbus.async",
+  "version": "0.1.0",
+  "displayName": "Fang Framework Async Event Bus",
+  "description": "挂在异步 Scope 上的类型安全事件总线：一次性「领域事件」的广播口（Subscribe 幂等去重 / Publish 遍历快照 / 主线程同步直调 / 不吞异常）。宿主是 AsyncService —— 本工程 Scope 是 AsyncScope。",
+  "unity": "2022.3",
+  "keywords": [
+    "framework",
+    "fang",
+    "event",
+    "eventbus",
+    "async",
+    "unitask"
+  ],
+  "author": {
+    "name": "Fang"
+  },
+  "dependencies": {
+    "com.cysharp.unitask": "2.5.11"
+  }
+}

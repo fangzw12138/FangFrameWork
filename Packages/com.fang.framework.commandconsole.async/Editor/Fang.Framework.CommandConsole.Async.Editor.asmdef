@@ -1,0 +1,22 @@
+{
+  "name": "Fang.Framework.CommandConsole.Async.Editor",
+  "rootNamespace": "Fang.Framework.CommandConsole.Async.Editor",
+  "references": [
+    "Fang.Framework",
+    "Fang.Framework.Async",
+    "Fang.Framework.Editor",
+    "Fang.Framework.CommandConsole.Async",
+    "UniTask"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": false,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

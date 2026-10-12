@@ -1,0 +1,18 @@
+{
+  "name": "Fang.Framework.CommandConsole.Async",
+  "rootNamespace": "Fang.Framework.CommandConsole.Async",
+  "references": [
+    "Fang.Framework",
+    "Fang.Framework.Async",
+    "UniTask"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

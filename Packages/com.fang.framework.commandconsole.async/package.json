@@ -1,0 +1,23 @@
+{
+  "name": "com.fang.framework.commandconsole.async",
+  "version": "0.1.0",
+  "displayName": "Fang Framework Async Command Console",
+  "description": "挂在异步 Scope 上的调试指令层：特性扫描 + 注册表 + 异步树上下文查找 + TCP(NDJSON) 传输 + 编辑器控制台与文档生成。",
+  "unity": "2022.3",
+  "keywords": [
+    "framework",
+    "fang",
+    "command",
+    "console",
+    "debug",
+    "async",
+    "unitask"
+  ],
+  "author": {
+    "name": "Fang"
+  },
+  "dependencies": {
+    "com.cysharp.unitask": "2.5.11",
+    "com.unity.nuget.newtonsoft-json": "3.2.2"
+  }
+}

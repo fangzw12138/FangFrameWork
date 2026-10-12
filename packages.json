@@ -70,6 +70,24 @@
       "version": "0.1.0",
       "tag": "com.fang.framework.ui.async/v0.1.0",
       "unity": "2022.3"
+    },
+    {
+      "name": "com.fang.framework.eventbus.async",
+      "displayName": "Fang Framework Async Event Bus",
+      "description": "挂在异步 Scope 上、类型安全的发布订阅：一次性领域事件的广播口（Subscribe 幂等去重 / Publish 遍历快照 / 主线程同步直调 / 不吞异常）。",
+      "path": "/Packages/com.fang.framework.eventbus.async",
+      "version": "0.1.0",
+      "tag": "com.fang.framework.eventbus.async/v0.1.0",
+      "unity": "2022.3"
+    },
+    {
+      "name": "com.fang.framework.commandconsole.async",
+      "displayName": "Fang Framework Async Command Console",
+      "description": "挂在异步 Scope 上的调试指令层：特性扫描 + 注册表 + 异步树上下文查找 + TCP(NDJSON) 传输 + 编辑器控制台与文档生成。",
+      "path": "/Packages/com.fang.framework.commandconsole.async",
+      "version": "0.1.0",
+      "tag": "com.fang.framework.commandconsole.async/v0.1.0",
+      "unity": "2022.3"
     }
   ]
 }

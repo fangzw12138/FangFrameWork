@@ -84,6 +84,8 @@ namespace Fang.Framework.Async
             var scope = host.AddComponent<T>();
             scope._parent = this;
             _children.Add(scope);
+            TrackMember(scope);
+            RefreshInitProgress();
             return scope;
         }
 
@@ -97,6 +99,8 @@ namespace Fang.Framework.Async
                 }
 
                 _children.RemoveAt(i);
+                UntrackMember(child);
+                RefreshInitProgress();
 
                 if (child.HasStarted)
                 {
@@ -130,6 +134,8 @@ namespace Fang.Framework.Async
             }
 
             _services.Add(service);
+            TrackMember(service);
+            RefreshInitProgress();
             service.InitAsync().Forget();
             return service;
         }
@@ -141,11 +147,67 @@ namespace Fang.Framework.Async
                 if (_services[i] is T service)
                 {
                     _services.RemoveAt(i);
+                    UntrackMember(service);
+                    RefreshInitProgress();
                     return service.DisposeAsync();
                 }
             }
 
             return UniTask.CompletedTask;
+        }
+
+        // A scope's progress is the equal-weight average of what it holds — its services plus its
+        // child scopes — so nobody outside has to fold the tree on its behalf. Members are tracked
+        // the moment they are registered; disposing one clears its own events, which unsubscribes
+        // it for free (AsyncLifecycleBehaviour.RunDisposalAsync).
+        private void TrackMember(IAsyncLifecycle member)
+        {
+            if (member is AsyncLifecycleBehaviour behaviour)
+            {
+                behaviour.InitProgressChanged += OnMemberProgressChanged;
+            }
+        }
+
+        private void UntrackMember(IAsyncLifecycle member)
+        {
+            if (member is AsyncLifecycleBehaviour behaviour)
+            {
+                behaviour.InitProgressChanged -= OnMemberProgressChanged;
+            }
+        }
+
+        private void OnMemberProgressChanged(AsyncLifecycleBehaviour member, float value)
+        {
+            RefreshInitProgress();
+        }
+
+        private void RefreshInitProgress()
+        {
+            // An initialized scope sits at 1 and stays there: a member finishing late must not pull
+            // a finished scope's progress back down.
+            if (IsInitialized)
+            {
+                return;
+            }
+
+            var total = 0f;
+            var sum = 0f;
+
+            for (var i = 0; i < _services.Count; i++)
+            {
+                total += 1f;
+                sum += _services[i].InitProgress;
+            }
+
+            for (var i = 0; i < _children.Count; i++)
+            {
+                total += 1f;
+                sum += _children[i].InitProgress;
+            }
+
+            // Nothing to average (a scope holding nothing, or one whose members were all detached):
+            // stay at 0 until this scope's own init completes.
+            ReportInitProgress(total <= 0f ? 0f : sum / total);
         }
 
         private protected override async UniTask OnDisposeCoreAsync()
@@ -160,6 +222,7 @@ namespace Fang.Framework.Async
             {
                 try
                 {
+                    UntrackMember(_disposalBuffer[i]);
                     await _disposalBuffer[i].DisposeAsync();
                 }
                 catch (Exception exception)
@@ -172,6 +235,7 @@ namespace Fang.Framework.Async
             {
                 try
                 {
+                    UntrackMember(_services[i]);
                     await _services[i].DisposeAsync();
                 }
                 catch (Exception exception)

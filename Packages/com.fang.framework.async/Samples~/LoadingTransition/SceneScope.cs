@@ -9,7 +9,6 @@ namespace Fang.Framework.Async.LoadingTransition
             AddService<TerrainLoadingStep>();
             AddService<ActorsLoadingStep>();
             AddService<NavMeshLoadingStep>();
-            AddService<InitDriver>();
 
             await this.AwaitServicesAsync();
         }

@@ -99,7 +99,9 @@ namespace Fang.Framework.Async
                     return;
                 }
 
-                _initProgress = 1f;
+                // Completion goes through the same door as every other report, so subscribers
+                // (in practice the enclosing scope) are told instead of having to poll.
+                ReportInitProgress(1f);
                 IsInitialized = true;
                 _initializationSource.TrySetResult();
                 InitCompleted?.Invoke(this);

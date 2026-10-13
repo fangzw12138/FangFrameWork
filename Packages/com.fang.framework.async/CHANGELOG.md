@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.1.2] - 2026-10-13
+
+### Added
+
+- EditMode 测试 6 项（`AsyncProgressTests`）：等权平均、成员完成后本层自动跟随、子 scope 进度向父层传播、初始化后冻结在 1、成员移除后重算、完成会抛进度事件。
+
+### Changed
+
+- `AsyncLifecycleBehaviour`：完成时不再直接写 `InitProgress = 1`，改为走 `ReportInitProgress(1f)` —— 完成也会抛 `InitProgressChanged`，订阅方不必再在 `InitCompleted` 里自己补 100%（旧版把它列为「坑 §7.3」）。
+- `AsyncScope`：**自己聚合进度**。本层 `InitProgress` = 「本层服务 + 子 scope」的等权平均；成员一注册就纳入统计、成员一变化就重算（事件驱动，零轮询）；`IsInitialized` 之后冻结在 1。业务方不再需要往每一层塞一个「每帧折算进度」的服务。
+  - 已知边界：只实现 `IAsyncLifecycle`、**没有继承 `AsyncLifecycleBehaviour`** 的服务（`异步快速开始.md` §3.2 那条路）没有进度事件，它的进度只在同一层有别的成员变化时才被重新折算 —— 要实时跟随就继承 `AsyncLifecycleBehaviour`。
+  - 权重固定为等权；串行 / 并行 / 加权的取舍仍由业务方在自己的钩子里决定。
+
+### Removed
+
+- **Samples~/LoadingTransition**：删掉 `InitDriver`（`AsyncService` + `ITickable`，每帧折算进度）—— 框架现在自己做这件事，样例四层 Scope 的装配不再含任何进度相关代码。
+
 ## [0.1.1] - 2026-10-02
 
 ### Fixed

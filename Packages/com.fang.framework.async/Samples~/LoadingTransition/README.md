@@ -9,7 +9,7 @@ LoadingTransitionHost          宿主（本样例唯一写 Unity 消息方法的
   Canvas                       代码搭建：遮罩 + 进度条 + 两个按钮
     LoadingTransitionOverlay   LoadingTransitionVisual（只订阅事件，零轮询）
   App                          AppScope（永久容器）
-    Services                   InitDriver + 两个模拟加载步骤
+    Services                   两个模拟加载步骤
     TitleScope                 在启动轮里创建（属于 App 的初始化）
       GameScope                点「进入游戏」后创建
         Services
@@ -20,7 +20,7 @@ LoadingTransitionHost          宿主（本样例唯一写 Unity 消息方法的
 | --- | --- |
 | `AppScope` | 永久容器。切换入口 `EnterGame()` / `ReturnToTitle()` = 摘旧子 + `CreateChildScope` + **显式 `await child.InitAsync()`** |
 | `TitleScope` / `GameScope` / `SceneScope` | 每轮的子树。`GameScope` 里本层服务与子 scope 用 `UniTask.WhenAll` 并行 |
-| `InitDriver` | `AsyncService` + 核心 `ITickable`：每帧把**自己这一层**的「服务 + 子 scope」等权折算成 `InitProgress` 报给本层 |
+| 进度聚合 | **不用写**：框架的 `AsyncScope` 把**本层**的「服务 + 子 scope」等权折算成 `InitProgress`，成员一注册就纳入、一变化就重算（事件驱动、零轮询）。`0.1.1` 及以前这活儿由样例里的 `InitDriver` 干，`0.1.2` 起框架自己做 |
 | `LoadingSteps` | 9 个基于 `await UniTask.Yield` 的模拟加载步骤，负责产生平滑进度 |
 | `LoadingTransitionVisual` | 加载画面：只订阅 `InitStarted` / `InitProgressChanged` / `InitCompleted`，只在这些事件里改 UI |
 
@@ -39,7 +39,7 @@ LoadingTransitionHost          宿主（本样例唯一写 Unity 消息方法的
 
 ## 四、进度是「状态」，事件只是通知
 
-`InitProgress` 按核心口径属于状态，所以 `Watch(root)` 会直接读一次当前值兜底，事件只负责变化通知。另外框架在初始化完成时是**直接置 1、不发 `InitProgressChanged`**，因此视觉层在 `InitCompleted` 里补一次 `SetProgress(1f)`。
+`InitProgress` 按核心口径属于状态，所以 `Watch(root)` 会直接读一次当前值兜底，事件只负责变化通知。`0.1.2` 起框架在完成时也走 `ReportInitProgress(1f)`（会抛事件），视觉层 `InitCompleted` 里那句 `SetProgress(1f)` 已成幂等兜底、不再是必须。
 
 ## 五、运行
 

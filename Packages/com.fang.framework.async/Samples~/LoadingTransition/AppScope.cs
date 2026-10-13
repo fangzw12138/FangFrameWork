@@ -12,7 +12,6 @@ namespace Fang.Framework.Async.LoadingTransition
         {
             AddService<AppConfigLoadingStep>();
             AddService<AppAudioLoadingStep>();
-            AddService<InitDriver>();
 
             var title = CreateChildScope<TitleScope>();
 

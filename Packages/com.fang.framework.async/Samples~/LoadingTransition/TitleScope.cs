@@ -8,7 +8,6 @@ namespace Fang.Framework.Async.LoadingTransition
         {
             AddService<TitleUiLoadingStep>();
             AddService<TitleDataLoadingStep>();
-            AddService<InitDriver>();
 
             await this.AwaitServicesAsync();
         }

@@ -8,7 +8,6 @@ namespace Fang.Framework.Async.LoadingTransition
         {
             AddService<GameDataLoadingStep>();
             AddService<GameInputLoadingStep>();
-            AddService<InitDriver>();
 
             var scene = CreateChildScope<SceneScope>();
 

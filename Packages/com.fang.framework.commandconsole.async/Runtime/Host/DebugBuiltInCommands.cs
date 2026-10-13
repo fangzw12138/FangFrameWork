@@ -10,7 +10,7 @@ namespace Fang.Framework.CommandConsole.Async
     /// </summary>
     internal static class DebugBuiltInCommands
     {
-        [DebugCommand("ping", "连通性与运行状态自检", "system")]
+        [DebugCommand("ping", "连通性与运行状态自检", DebugCommandDefaults.BuiltInCategory)]
         public static object Ping(DebugCommandContext ctx, DebugCommandArgs args)
         {
             var service = ctx.GetService<DebugCommandService>();
@@ -30,7 +30,7 @@ namespace Fang.Framework.CommandConsole.Async
             };
         }
 
-        [DebugCommand("list_commands", "列出已注册指令（可选按关键字过滤名称/分类/说明）", "system")]
+        [DebugCommand("list_commands", "列出已注册指令（可选按关键字过滤名称/分类/说明）", DebugCommandDefaults.BuiltInCategory)]
         public static object ListCommands(DebugCommandContext ctx, DebugCommandArgs args)
         {
             var registry = ctx.Registry;
@@ -71,7 +71,7 @@ namespace Fang.Framework.CommandConsole.Async
             };
         }
 
-        [DebugCommand("command_log", "查看最近调用日志（默认 10 条，上限 200）", "system")]
+        [DebugCommand("command_log", "查看最近调用日志（默认 10 条，上限 200）", DebugCommandDefaults.BuiltInCategory)]
         public static object CommandLog(DebugCommandContext ctx, DebugCommandArgs args)
         {
             var registry = ctx.Registry;

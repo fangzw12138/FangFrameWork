@@ -25,6 +25,7 @@ public static object OpenPanel(DebugCommandContext ctx, DebugCommandArgs args)
 | 其它异常 | 打 `Debug.LogError` 后返回 `{ok:false,error}` |
 | 取服务 | 一律 `ctx.GetService<T>()`（`where T : class`）；先沿 `Parent` 向上找，再 BFS 向下兜底；找不到返回 `null`，**不抛** |
 | 扫描范围 | 默认只扫「引用了本包程序集」的程序集，因此使用方程序集必须引用 `Fang.Framework.CommandConsole.Async` |
+| 分类 | 不写分类即回落 `DebugCommandAttribute.DefaultCategory`（`system`）；包内置三条（`ping` / `list_commands` / `command_log`）用 `DebugCommandDefaults.BuiltInCategory`（`builtin`） |
 | 构建安全 | 本包全部代码在 `#if UNITY_EDITOR \|\| DEVELOPMENT_BUILD` 内，Release 构建自动剔除；引用方同样要包 |
 
 ## 依赖
@@ -47,12 +48,22 @@ Fang.Framework.CommandConsole.Async
 
 | 目录 | 内容 |
 | --- | --- |
-| `Runtime/Command` | 特性、参数、异常、条目、注册表、扫描器、上下文 |
+| `Runtime/Command` | 特性、参数、异常、条目、注册表、扫描器、上下文、内置默认值 |
 | `Runtime/Config` | `DebugProjectSo`（监听地址/端口/自动启动/扫描前缀，零写入口） |
 | `Runtime/Host` | `DebugCommandService`（`AsyncService` + `ITickable`）与内置指令 |
 | `Runtime/Transport` | `TcpDebugCommandServer`（后台线程收、主线程执行） |
-| `Editor` | 指令控制台窗口 + `Docs/DebugCommands.md` 文档生成器 |
-| `Tests/Editor` | EditMode 单测（扫描器 / 注册表 / 上下文） |
+| `Editor` | FangHub「指令控制台（异步）」页（只读清单）+ 指令控制台窗口 + `Docs/DebugCommands.md` 文档生成器 |
+| `Tests/Editor` | EditMode 单测（扫描器 / 注册表 / 上下文 / FangHub 页发现） |
+
+## 编辑器入口
+
+| 入口 | 位置 | 能做什么 |
+| --- | --- | --- |
+| **指令控制台（异步）** | `Tools/Fang Framework/Fang Hub` → 侧栏 `Framework` 组 | 只读：指令清单、搜索、分类筛选、详情与调用方式、复制指令、导出文档、打开控制台 |
+| 指令控制台 | 菜单 `Fang/调试/指令控制台` | 执行指令（活实例上）、看调用日志 |
+| 导出指令文档 | 菜单 `Fang/调试/导出指令文档` | 生成 `Docs/DebugCommands.md` |
+
+执行能力刻意留在独立窗口：FangHub 的 IMGUI 页在 PlayMode 下不渲染，而执行指令恰恰主要在 PlayMode 用。
 
 ## 传输协议
 
@@ -65,17 +76,17 @@ Fang.Framework.CommandConsole.Async
 
 ## 安装
 
-`Tools/Fang Framework/Fang Hub` → 侧栏「扩展包」→ 点「刷新」→ 点「安装」。
+`Tools/Fang Framework/Fang Hub` → 侧栏「框架与扩展」→ 点「刷新」→ 点「安装」。
 
 也可以按 git URL + tag 直接写进 `Packages/manifest.json`：
 
 ```jsonc
-"com.fang.framework.commandconsole.async": "https://github.com/fangzw12138/FangFrameWork.git?path=/Packages/com.fang.framework.commandconsole.async#com.fang.framework.commandconsole.async/v0.1.0"
+"com.fang.framework.commandconsole.async": "https://github.com/fangzw12138/FangFrameWork.git?path=/Packages/com.fang.framework.commandconsole.async#com.fang.framework.commandconsole.async/v0.1.1"
 ```
 
 ## 状态
 
-`0.1.0`。协议、注册表与上下文查找已稳定；业务指令写在**使用方工程**的程序集里（该程序集必须引用 `Fang.Framework.CommandConsole.Async`）。
+`0.1.1`。协议、注册表与上下文查找已稳定；业务指令写在**使用方工程**的程序集里（该程序集必须引用 `Fang.Framework.CommandConsole.Async`）。
 
 ## 许可证
 

@@ -85,8 +85,8 @@
       "displayName": "Fang Framework Async Command Console",
       "description": "挂在异步 Scope 上的调试指令层：特性扫描 + 注册表 + 异步树上下文查找 + TCP(NDJSON) 传输 + 编辑器控制台与文档生成。",
       "path": "/Packages/com.fang.framework.commandconsole.async",
-      "version": "0.1.0",
-      "tag": "com.fang.framework.commandconsole.async/v0.1.0",
+      "version": "0.1.1",
+      "tag": "com.fang.framework.commandconsole.async/v0.1.1",
       "unity": "2022.3"
     }
   ]

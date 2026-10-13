@@ -5,6 +5,8 @@
     "Fang.Framework",
     "Fang.Framework.Async",
     "Fang.Framework.CommandConsole.Async",
+    "Fang.Framework.CommandConsole.Async.Editor",
+    "Fang.Framework.Editor",
     "UniTask",
     "UnityEngine.TestRunner",
     "UnityEditor.TestRunner"

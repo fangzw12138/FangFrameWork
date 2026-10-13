@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.1.1] - 2026-10-13
+
+### Added
+
+- **Editor**：FangHub 只读清单页「指令控制台（异步）」（`DebugPage`，页 id `framework-command-console-async`，分组 `Framework`）—— 指令清单 + 搜索 + 分类筛选 + 详情与调用方式 + 复制指令 + 导出文档 + 打开控制台；**执行仍在独立窗口**（Hub 的 IMGUI 页在 PlayMode 不渲染）。
+- `DebugCommandDefaults.BuiltInCategory`：内置指令分类从字面量提成常量。
+- **Tests/Editor**：`DebugHubPageTests` —— 断言 Hub 页被发现且元数据正确、内置三条用的是内置分类。
+
+### Changed
+
+- 内置指令（`ping` / `list_commands` / `command_log`）的分类由 `system` 改为 `builtin`，与「未显式指定分类」的回落值（`DebugCommandAttribute.DefaultCategory`，仍是 `system`）区分开。指令名、调用方式与 TCP 协议不变。
+
 ## [0.1.0] - 2026-10-12
 
 ### Added

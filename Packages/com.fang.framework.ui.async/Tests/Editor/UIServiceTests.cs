@@ -115,6 +115,19 @@ namespace Fang.Framework.UI.Async.Tests
         }
 
         [UnityTest]
+        public IEnumerator OpenAsync_injects_the_owning_scope_into_the_panel()
+        {
+            _service.Configure(_project);
+
+            TestVisualTreePanelController panel = null;
+            yield return OpenPanel().ToCoroutine(result => panel = result);
+
+            Assert.IsNotNull(panel);
+            Assert.AreSame(_scope, panel.InjectedScope);
+            Assert.IsTrue(panel.ScopeInjectedInsideOpenHook);
+        }
+
+        [UnityTest]
         public IEnumerator CloseAsync_hides_the_visual_tree_root_without_touching_the_game_object()
         {
             _service.Configure(_project);

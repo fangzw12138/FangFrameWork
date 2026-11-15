@@ -150,6 +150,11 @@ namespace Fang.Framework.UI.Async
                 return null;
             }
 
+            if (panel is IAsyncInjectable injectable)
+            {
+                injectable.Inject(Scope);
+            }
+
             var data = panel.CreateData(config);
 
             if (data == null)

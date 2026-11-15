@@ -100,3 +100,15 @@ Unity 对象被销毁后，C# 引用还在，但 `== null` 为 `true`（重载�
 
 代价：脚本已存在但内容不合脚手架预期时不会自动纠正 —— 由列表页的「完整性」与「校验」显示缺失项，人自己决定删还是改。
 
+## 13. 面板会拿到所属 Scope
+
+`UIService.OpenAsync` 在面板创建后、`CreateData` / `InitAsync` 之前，对面板调用 `IAsyncInjectable.Inject(Scope)`。面板控制器因此拿到的是 `UIService` 所在的 `AsyncScope`，不是子 scope。
+
+用法：在 `OnOpenAsync` / `OnCloseAsync` 里直接 `Scope.GetService<T>()` 取同一 scope 树上的服务（例如 `SettingsService` / `ConfirmDialogService`），不需要面板自己再传 scope 或走静态入口。
+
+注意：
+
+- 复用已打开面板的分支不再注入 —— 首次创建时已经注入，同一实例的 `Scope` 不会变。
+- 注入发生在 `InitAsync` 之前，所以 `AsyncLifecycleBehaviour` 的初始化钩子里就可用。
+- 面板是 `AsyncController`，本来就有 `protected AsyncScope Scope`；这里的改动只是补上了「谁给它赋值」。
+

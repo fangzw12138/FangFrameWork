@@ -151,6 +151,10 @@ namespace Fang.Framework.UI.Async.Tests
 
         public UIDocument Document => GetComponent<UIDocument>();
 
+        public AsyncScope InjectedScope => Scope;
+
+        public bool? ScopeInjectedInsideOpenHook { get; private set; }
+
         public int OpenCount { get; private set; }
 
         public int CloseCount { get; private set; }
@@ -165,6 +169,7 @@ namespace Fang.Framework.UI.Async.Tests
         protected override UniTask OnOpenAsync()
         {
             OpenCount++;
+            ScopeInjectedInsideOpenHook = Scope != null;
             return UniTask.CompletedTask;
         }
 

@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.1.1] - 2026-11-15
+
+### Fixed
+
+- `UIService.OpenAsync` 在面板创建后、初始化前注入所属 `AsyncScope`：面板控制器内的 `Scope` 不再为 null，`OnOpenAsync` 与 `OnCloseAsync` 中可直接 `Scope.GetService<T>()`。UGUI 与 UI Toolkit 面板均覆盖。
+
 ## [0.1.0] - 2026-10-11
 
 ### Added

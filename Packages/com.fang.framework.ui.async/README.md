@@ -131,6 +131,16 @@ ui.InputBlockingPanelClosed += () => input.enabled = true;
 var blocked = ui.HasInputBlockingPanel;
 ```
 
+### 焦点恢复
+
+`UIService` 记录最后一次真正获得焦点的栈顶面板。鼠标点击背景导致选中丢失、随后收到键盘/手柄 UI 输入时，输入层可以调用：
+
+```csharp
+ui.RestoreFocus();   // 只重新 Focus 当前栈顶、且最后被 Focus 过的面板；栈空或面板不在栈顶时 no-op
+```
+
+面板的 `OnFocus` 应使用幂等版本（已在本面板内则不重复选择），避免每次 UI 输入都把方向导航重置回记忆行。
+
 ## 编辑器
 
 本包带一个 FangHub 页（`Editor/UIPage.cs`，程序集 `Fang.Framework.UI.Async.Editor`）：`Tools/Fang Framework/Fang Hub` → 侧栏「UI」→ 页「Async UI」。

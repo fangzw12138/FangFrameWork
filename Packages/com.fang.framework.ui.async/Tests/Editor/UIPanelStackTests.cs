@@ -141,6 +141,25 @@ namespace Fang.Framework.UI.Async.Tests
         }
 
         [UnityTest]
+        public IEnumerator PanelFocused_fires_in_stack_order()
+        {
+            var stack = new UIPanelStack();
+            var focused = new List<IUIPanel>();
+            stack.PanelFocused += panel => focused.Add(panel);
+            var first = Track(new FakePanel("PanelA"));
+            var second = Track(new FakePanel("PanelB"));
+
+            yield return stack.PushAsync(first, false, false).ToCoroutine(null);
+            yield return stack.PushAsync(second, false, false).ToCoroutine(null);
+
+            var popped = false;
+            yield return stack.PopAsync(second).ToCoroutine(result => popped = result);
+
+            Assert.IsTrue(popped);
+            CollectionAssert.AreEqual(new IUIPanel[] { first, second, first }, focused);
+        }
+
+        [UnityTest]
         public IEnumerator Pop_returns_false_for_a_panel_that_is_not_stacked()
         {
             var stack = new UIPanelStack();

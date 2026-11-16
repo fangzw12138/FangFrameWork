@@ -231,6 +231,52 @@ namespace Fang.Framework.UI.Async.Tests
         }
 
         [UnityTest]
+        public IEnumerator RestoreFocus_refocuses_only_the_last_focused_top_panel()
+        {
+            var firstConfig = TestConfigs.CreatePrefabPanel("FirstPanel", "Default", 0, false, false);
+            var secondConfig = TestConfigs.CreatePrefabPanel("SecondPanel", "Default", 10, false, false);
+            var project = TestConfigs.CreateProject(
+                new[] { _layer },
+                new UIPanelConfigDataSo[] { firstConfig, secondConfig });
+            _service.Configure(project);
+
+            TestPrefabPanelController first = null;
+            yield return _service
+                .OpenAsync<TestPrefabPanelController, UIPrefabPanelConfigDataSo, TestPrefabPanelData>("FirstPanel")
+                .ToCoroutine(result => first = result);
+
+            TestPrefabPanelController second = null;
+            yield return _service
+                .OpenAsync<TestPrefabPanelController, UIPrefabPanelConfigDataSo, TestPrefabPanelData>("SecondPanel")
+                .ToCoroutine(result => second = result);
+
+            Assert.IsNotNull(first);
+            Assert.IsNotNull(second);
+            Assert.AreEqual(1, first.FocusCount);
+            Assert.AreEqual(1, second.FocusCount);
+
+            _service.RestoreFocus();
+
+            Assert.AreEqual(1, first.FocusCount);
+            Assert.AreEqual(2, second.FocusCount);
+
+            var closed = false;
+            yield return _service.CloseAsync("SecondPanel").ToCoroutine(result => closed = result);
+
+            Assert.IsTrue(closed);
+            Assert.AreEqual(2, first.FocusCount);
+
+            _service.RestoreFocus();
+            Assert.AreEqual(3, first.FocusCount);
+
+            yield return _service.CloseAsync("FirstPanel").ToCoroutine(result => closed = result);
+            Assert.IsTrue(closed);
+
+            _service.RestoreFocus();
+            Assert.AreEqual(3, first.FocusCount);
+        }
+
+        [UnityTest]
         public IEnumerator Input_blocking_events_are_raised_through_the_service()
         {
             _service.Configure(_project);

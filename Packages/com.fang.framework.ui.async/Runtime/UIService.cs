@@ -28,6 +28,7 @@ namespace Fang.Framework.UI.Async
         private UICanvasRenderMode _canvasRenderMode = UICanvasRenderMode.ScreenSpaceCamera;
         private string _canvasWorldCameraName;
         private float _canvasPlaneDistance = 1f;
+        private IUIPanel _focusedPanel;
 
         public event Action InputBlockingPanelOpened;
 
@@ -200,6 +201,24 @@ namespace Fang.Framework.UI.Async
             return _stack.Find(configId);
         }
 
+        public void RestoreFocus()
+        {
+            var top = _stack.Top;
+
+            if (top == null)
+            {
+                _focusedPanel = null;
+                return;
+            }
+
+            if (!ReferenceEquals(_focusedPanel, top) || !UIPanelStack.IsAlive(_focusedPanel))
+            {
+                return;
+            }
+
+            _focusedPanel.Focus();
+        }
+
         protected override UniTask OnInitAsync()
         {
             var root = new GameObject(RootName, typeof(RectTransform));
@@ -217,6 +236,7 @@ namespace Fang.Framework.UI.Async
 
             _stack.InputBlockingPanelOpened += OnInputBlockingPanelOpened;
             _stack.InputBlockingPanelClosed += OnInputBlockingPanelClosed;
+            _stack.PanelFocused += OnPanelFocused;
 
             return UniTask.CompletedTask;
         }
@@ -225,6 +245,8 @@ namespace Fang.Framework.UI.Async
         {
             _stack.InputBlockingPanelOpened -= OnInputBlockingPanelOpened;
             _stack.InputBlockingPanelClosed -= OnInputBlockingPanelClosed;
+            _stack.PanelFocused -= OnPanelFocused;
+            _focusedPanel = null;
 
             await SafeAsync(_stack.PopAllAsync(), "close all opened panels");
 
@@ -382,6 +404,11 @@ namespace Fang.Framework.UI.Async
 
             Debug.LogError($"{LogTag} Panel config '{configId}' is not registered as '{typeof(TConfig).FullName}' in project config '{_projectConfig.name}'.");
             return null;
+        }
+
+        private void OnPanelFocused(IUIPanel panel)
+        {
+            _focusedPanel = panel;
         }
 
         private void OnInputBlockingPanelOpened()

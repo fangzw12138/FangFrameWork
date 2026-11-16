@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.3] - 2026-11-16
+
+### Added
+
+- `UIService.RestoreFocus()`：重新 `Focus()` 当前栈顶、且最后一次真正获得过焦点的面板；栈空或焦点面板已不是栈顶时 no-op。供输入层在鼠标点击背景丢失 `EventSystem` 选中后、收到键盘/手柄 UI 输入时调用。
+- `UIPanelStack.PanelFocused`（internal）：`PushAsync` / `RestoreTopAsync` 在调用 `panel.Focus()` 之后发出，用作焦点归属通知。
+
 ## [0.1.2] - 2026-11-16
 
 ### Fixed

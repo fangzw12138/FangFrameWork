@@ -21,6 +21,8 @@ namespace Fang.Framework.UI.Async
 
         public event Action InputBlockingPanelClosed;
 
+        internal event Action<IUIPanel> PanelFocused;
+
         public int Count
         {
             get
@@ -102,6 +104,7 @@ namespace Fang.Framework.UI.Async
 
             await panel.OpenAsync();
             panel.Focus();
+            PanelFocused?.Invoke(panel);
 
             TrackInputBlocking(blocksInput);
         }
@@ -193,6 +196,7 @@ namespace Fang.Framework.UI.Async
             }
 
             entry.Panel.Focus();
+            PanelFocused?.Invoke(entry.Panel);
         }
 
         private void TrackInputBlocking(bool blocksInput)

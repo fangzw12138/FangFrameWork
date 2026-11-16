@@ -35,6 +35,7 @@ namespace Fang.Framework.UI.Async
             }
 
             var host = new GameObject($"{CanvasNamePrefix}{sortingOrder}", typeof(RectTransform));
+            host.SetActive(false);
             host.transform.SetParent(_root, false);
 
             var canvas = host.AddComponent<Canvas>();
@@ -45,6 +46,8 @@ namespace Fang.Framework.UI.Async
             ApplySettings(scaler);
 
             host.AddComponent<GraphicRaycaster>();
+
+            host.SetActive(true);
 
             _canvases[sortingOrder] = canvas;
             return canvas.transform;

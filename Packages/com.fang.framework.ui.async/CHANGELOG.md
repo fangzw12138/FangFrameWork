@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.1.2] - 2026-11-16
+
+### Fixed
+
+- `UICanvasPool.Get` 新建 Canvas 改为 inactive-first：先创建并停用宿主，配置完 `Canvas` / `sortingOrder` / 渲染模式 / `CanvasScaler` / `GraphicRaycaster` 后再激活。修复 Unity 6000.6.5f1 下运行时新建的 Overlay Canvas 排序注册不生效、被低 `sortingOrder` 画布遮挡的问题；与 Unity 版本无关，无 `#if`。
+
 ## [0.1.1] - 2026-11-15
 
 ### Fixed

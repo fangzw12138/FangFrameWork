@@ -36,6 +36,8 @@ namespace Fang.Framework.UI.Async
 
         public bool HasInputBlockingPanel => _stack.HasInputBlocking;
 
+        public IUIPanel TopPanel => _stack.Top;
+
         public void Configure(UIProjectConfigDataSo projectConfig)
         {
             if (projectConfig == null)
@@ -199,6 +201,17 @@ namespace Fang.Framework.UI.Async
         public IUIPanel GetOpened(string configId)
         {
             return _stack.Find(configId);
+        }
+
+        public UIPanelConfigDataSo GetPanelConfig(string configId)
+        {
+            if (string.IsNullOrEmpty(configId))
+            {
+                return null;
+            }
+
+            _registeredConfigs.TryGetValue(configId, out var config);
+            return config;
         }
 
         public void RestoreFocus()

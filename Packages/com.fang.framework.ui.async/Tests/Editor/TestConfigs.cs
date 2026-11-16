@@ -34,12 +34,13 @@ namespace Fang.Framework.UI.Async.Tests
             bool closePreviousOnOpen,
             bool blocksInput,
             bool withVisualTreeAsset = true,
-            bool withPanelSettings = true)
+            bool withPanelSettings = true,
+            bool closeOnBack = false)
         {
             var config = Track(ScriptableObject.CreateInstance<UIVisualTreePanelConfigDataSo>());
             var serialized = new SerializedObject(config);
             serialized.FindProperty("_id").stringValue = id;
-            ApplyPanelFields(serialized, layerId, sortOrder, closePreviousOnOpen, blocksInput);
+            ApplyPanelFields(serialized, layerId, sortOrder, closePreviousOnOpen, blocksInput, closeOnBack);
 
             if (withVisualTreeAsset)
             {
@@ -61,12 +62,13 @@ namespace Fang.Framework.UI.Async.Tests
             int sortOrder,
             bool closePreviousOnOpen,
             bool blocksInput,
-            bool withPrefab = true)
+            bool withPrefab = true,
+            bool closeOnBack = false)
         {
             var config = Track(ScriptableObject.CreateInstance<UIPrefabPanelConfigDataSo>());
             var serialized = new SerializedObject(config);
             serialized.FindProperty("_id").stringValue = id;
-            ApplyPanelFields(serialized, layerId, sortOrder, closePreviousOnOpen, blocksInput);
+            ApplyPanelFields(serialized, layerId, sortOrder, closePreviousOnOpen, blocksInput, closeOnBack);
 
             if (withPrefab)
             {
@@ -165,12 +167,14 @@ namespace Fang.Framework.UI.Async.Tests
             string layerId,
             int sortOrder,
             bool closePreviousOnOpen,
-            bool blocksInput)
+            bool blocksInput,
+            bool closeOnBack)
         {
             serialized.FindProperty("_layerId").stringValue = layerId ?? string.Empty;
             serialized.FindProperty("_sortOrder").intValue = sortOrder;
             serialized.FindProperty("_closePreviousOnOpen").boolValue = closePreviousOnOpen;
             serialized.FindProperty("_blocksInput").boolValue = blocksInput;
+            serialized.FindProperty("_closeOnBack").boolValue = closeOnBack;
         }
     }
 }

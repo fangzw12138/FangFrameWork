@@ -9,6 +9,7 @@ namespace Fang.Framework.UI.Async
         [SerializeField] private int _sortOrder;
         [SerializeField] private bool _closePreviousOnOpen;
         [SerializeField] private bool _blocksInput;
+        [SerializeField] private bool _closeOnBack;
 
         public string LayerId => _layerId;
 
@@ -17,5 +18,7 @@ namespace Fang.Framework.UI.Async
         public bool ClosePreviousOnOpen => _closePreviousOnOpen;
 
         public bool BlocksInput => _blocksInput;
+
+        public bool CloseOnBack => _closeOnBack;
     }
 }

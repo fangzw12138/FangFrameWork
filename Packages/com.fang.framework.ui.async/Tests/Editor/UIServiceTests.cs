@@ -277,6 +277,65 @@ namespace Fang.Framework.UI.Async.Tests
         }
 
         [UnityTest]
+        public IEnumerator TopPanel_returns_the_last_pushed_panel()
+        {
+            var firstConfig = TestConfigs.CreatePrefabPanel("FirstPanel", "Default", 0, false, false);
+            var secondConfig = TestConfigs.CreatePrefabPanel("SecondPanel", "Default", 10, false, false);
+            var project = TestConfigs.CreateProject(
+                new[] { _layer },
+                new UIPanelConfigDataSo[] { firstConfig, secondConfig });
+            _service.Configure(project);
+
+            TestPrefabPanelController first = null;
+            yield return _service
+                .OpenAsync<TestPrefabPanelController, UIPrefabPanelConfigDataSo, TestPrefabPanelData>("FirstPanel")
+                .ToCoroutine(result => first = result);
+
+            TestPrefabPanelController second = null;
+            yield return _service
+                .OpenAsync<TestPrefabPanelController, UIPrefabPanelConfigDataSo, TestPrefabPanelData>("SecondPanel")
+                .ToCoroutine(result => second = result);
+
+            Assert.AreSame(second, _service.TopPanel);
+
+            var closed = false;
+            yield return _service.CloseAsync("SecondPanel").ToCoroutine(result => closed = result);
+
+            Assert.IsTrue(closed);
+            Assert.AreSame(first, _service.TopPanel);
+        }
+
+        [UnityTest]
+        public IEnumerator GetPanelConfig_returns_registered_config()
+        {
+            _service.Configure(_project);
+
+            Assert.AreSame(_panelConfig, _service.GetPanelConfig("TestPanel"));
+            yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator GetPanelConfig_returns_null_for_unknown_or_empty_id()
+        {
+            _service.Configure(_project);
+
+            Assert.IsNull(_service.GetPanelConfig("Missing"));
+            Assert.IsNull(_service.GetPanelConfig(string.Empty));
+            Assert.IsNull(_service.GetPanelConfig(null));
+            yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator CloseOnBack_is_read_from_panel_config()
+        {
+            var config = TestConfigs.CreatePrefabPanel("BackPanel", "Default", 0, false, false, true, true);
+
+            Assert.IsTrue(config.CloseOnBack);
+            Assert.IsFalse(_panelConfig.CloseOnBack);
+            yield return null;
+        }
+
+        [UnityTest]
         public IEnumerator Input_blocking_events_are_raised_through_the_service()
         {
             _service.Configure(_project);

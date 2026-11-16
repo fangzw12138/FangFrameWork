@@ -27,7 +27,7 @@ Fang.Framework.UI.Async
 | 资产 | 菜单 | 说明 |
 | --- | --- | --- |
 | 层配置 | `Create > Fang Framework > UI (Async) > 层配置` | 一个层一条：`Id` + `BaseSortOrder` |
-| UGUI 面板配置 | `Create > Fang Framework > UI (Async) > UGUI 面板配置` | `Prefab` + 层 / 排序 / 关闭前一个 / 阻塞输入 |
+| UGUI 面板配置 | `Create > Fang Framework > UI (Async) > UGUI 面板配置` | `Prefab` + 层 / 排序 / 关闭前一个 / 阻塞输入 / Back 关闭 |
 | UITK 面板配置 | `Create > Fang Framework > UI (Async) > UITK 面板配置` | `VisualTreeAsset` / `PanelSettings` / `StyleSheets` + 同上 |
 | 工程配置 | `Create > Fang Framework > UI (Async) > 工程配置` | 根命名空间、脚手架目录 + 层清单 + 面板注册表 |
 
@@ -140,6 +140,20 @@ ui.RestoreFocus();   // 只重新 Focus 当前栈顶、且最后被 Focus 过的
 ```
 
 面板的 `OnFocus` 应使用幂等版本（已在本面板内则不重复选择），避免每次 UI 输入都把方向导航重置回记忆行。
+
+### 返回键（Back）
+
+本包不监听输入，只提供面板侧的 Back 契约与只读查询入口：
+
+```csharp
+var top = ui.TopPanel;                       // 当前栈顶面板，栈空时为 null
+var config = ui.GetPanelConfig(top.ConfigId); // 已注册面板配置，未知 id 返回 null
+```
+
+- 顶层面板实现 `IUIPanelBackHandler` 时**完全接管** Back：是否关闭、何时关闭由面板决定（例如设置页有未保存修改时先弹保存框）。
+- 未实现该接口时，由 `UIPanelConfigDataSo.CloseOnBack` 决定：`true` 时输入层可调用 `ui.CloseTopAsync()`，`false` 时不做任何事。
+- 关闭仍统一走 `UIService.CloseTopAsync()` → 面板栈出栈 → 焦点还给下层；面板不要直接操作栈。
+- 输入层（例如工程的 `UIInputService`）负责把 Esc / 手柄 B 转成 Back 请求；`UIService` 本身不包含 Back/Esc 字段或方法。
 
 ## 编辑器
 

@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.1.4] - 2026-11-16
+
+### Added
+
+- `IUIPanelBackHandler`：面板实现该接口即完全接管 Back 请求，由面板自己决定何时关闭或弹确认框；外部不再兜底关闭。
+- `UIPanelConfigDataSo.CloseOnBack`：面板未实现 `IUIPanelBackHandler` 时，由配置决定顶层面板是否响应 Back 关闭；默认 `false`，必须显式开启。
+- `UIService.TopPanel`：只读暴露当前栈顶面板，并沿用面板栈的已销毁面板清理逻辑。
+- `UIService.GetPanelConfig(string)`：只读查询已注册的面板配置；未知或空 id 返回 `null`。
+
 ## [0.1.3] - 2026-11-16
 
 ### Added

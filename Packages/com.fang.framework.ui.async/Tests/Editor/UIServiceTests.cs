@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Text.RegularExpressions;
 using Cysharp.Threading.Tasks;
@@ -65,7 +66,7 @@ namespace Fang.Framework.UI.Async.Tests
 
             TestVisualTreePanelController panel = null;
             yield return _service
-                .OpenAsync<TestVisualTreePanelController, UIVisualTreePanelConfigDataSo, TestPanelData>(stray)
+                .OpenAsync<TestVisualTreePanelController, UIVisualTreePanelConfigDataSo, TestPanelData>(stray, _scope)
                 .ToCoroutine(result => panel = result);
 
             Assert.IsNull(panel);
@@ -125,6 +126,102 @@ namespace Fang.Framework.UI.Async.Tests
             Assert.IsNotNull(panel);
             Assert.AreSame(_scope, panel.InjectedScope);
             Assert.IsTrue(panel.ScopeInjectedInsideOpenHook);
+        }
+
+        [UnityTest]
+        public IEnumerator OpenAsync_injects_the_callers_scope()
+        {
+            _service.Configure(_project);
+
+            var otherScope = ProbeScope.Create<ProbeUiScope>();
+            yield return otherScope.InitAsync().ToCoroutine(null);
+
+            TestVisualTreePanelController panel = null;
+            yield return _service
+                .OpenAsync<TestVisualTreePanelController, UIVisualTreePanelConfigDataSo, TestPanelData>(
+                    _panelConfig,
+                    otherScope)
+                .ToCoroutine(result => panel = result);
+
+            Assert.IsNotNull(panel);
+            Assert.AreSame(otherScope, panel.InjectedScope);
+            Assert.AreSame(otherScope, panel.ScopeInsideOpenHook);
+        }
+
+        [UnityTest]
+        public IEnumerator OpenAsync_after_close_reinjects_the_new_scope()
+        {
+            _service.Configure(_project);
+
+            var otherScope = ProbeScope.Create<ProbeUiScope>();
+            yield return otherScope.InitAsync().ToCoroutine(null);
+
+            TestVisualTreePanelController panel = null;
+            yield return OpenPanel().ToCoroutine(result => panel = result);
+            Assert.AreSame(_scope, panel.ScopeInsideOpenHook);
+
+            var closed = false;
+            yield return _service.CloseAsync("TestPanel").ToCoroutine(result => closed = result);
+            Assert.IsTrue(closed);
+
+            yield return _service
+                .OpenAsync<TestVisualTreePanelController, UIVisualTreePanelConfigDataSo, TestPanelData>(
+                    _panelConfig,
+                    otherScope)
+                .ToCoroutine(result => panel = result);
+
+            Assert.IsNotNull(panel);
+            Assert.AreSame(otherScope, panel.InjectedScope);
+            Assert.AreSame(otherScope, panel.ScopeInsideOpenHook);
+            Assert.AreEqual(1, panel.CloseCount);
+            Assert.AreEqual(2, panel.OpenCount);
+        }
+
+        [UnityTest]
+        public IEnumerator OpenAsync_on_an_open_panel_keeps_the_first_scope()
+        {
+            _service.Configure(_project);
+
+            var otherScope = ProbeScope.Create<ProbeUiScope>();
+            yield return otherScope.InitAsync().ToCoroutine(null);
+
+            TestVisualTreePanelController panel = null;
+            yield return OpenPanel().ToCoroutine(result => panel = result);
+            Assert.AreSame(_scope, panel.ScopeInsideOpenHook);
+
+            LogAssert.Expect(
+                LogType.Warning,
+                new Regex(Regex.Escape("[Fang.Framework.UI.Async] Panel 'TestPanel' is already open") + ".*"));
+
+            TestVisualTreePanelController second = null;
+            yield return _service
+                .OpenAsync<TestVisualTreePanelController, UIVisualTreePanelConfigDataSo, TestPanelData>(
+                    _panelConfig,
+                    otherScope)
+                .ToCoroutine(result => second = result);
+
+            Assert.AreSame(panel, second);
+            Assert.AreSame(_scope, second.InjectedScope);
+            Assert.AreSame(_scope, second.ScopeInsideOpenHook);
+            Assert.AreEqual(1, second.OpenCount);
+        }
+
+        [Test]
+        public void OpenAsync_null_scope_throws()
+        {
+            Assert.Throws<ArgumentNullException>(() =>
+                _service.OpenAsync<TestVisualTreePanelController, UIVisualTreePanelConfigDataSo, TestPanelData>(
+                        _panelConfig,
+                        null)
+                    .GetAwaiter()
+                    .GetResult());
+
+            Assert.Throws<ArgumentNullException>(() =>
+                _service.OpenAsync<TestVisualTreePanelController, UIVisualTreePanelConfigDataSo, TestPanelData>(
+                        "TestPanel",
+                        null)
+                    .GetAwaiter()
+                    .GetResult());
         }
 
         [UnityTest]
@@ -242,12 +339,12 @@ namespace Fang.Framework.UI.Async.Tests
 
             TestPrefabPanelController first = null;
             yield return _service
-                .OpenAsync<TestPrefabPanelController, UIPrefabPanelConfigDataSo, TestPrefabPanelData>("FirstPanel")
+                .OpenAsync<TestPrefabPanelController, UIPrefabPanelConfigDataSo, TestPrefabPanelData>("FirstPanel", _scope)
                 .ToCoroutine(result => first = result);
 
             TestPrefabPanelController second = null;
             yield return _service
-                .OpenAsync<TestPrefabPanelController, UIPrefabPanelConfigDataSo, TestPrefabPanelData>("SecondPanel")
+                .OpenAsync<TestPrefabPanelController, UIPrefabPanelConfigDataSo, TestPrefabPanelData>("SecondPanel", _scope)
                 .ToCoroutine(result => second = result);
 
             Assert.IsNotNull(first);
@@ -288,12 +385,12 @@ namespace Fang.Framework.UI.Async.Tests
 
             TestPrefabPanelController first = null;
             yield return _service
-                .OpenAsync<TestPrefabPanelController, UIPrefabPanelConfigDataSo, TestPrefabPanelData>("FirstPanel")
+                .OpenAsync<TestPrefabPanelController, UIPrefabPanelConfigDataSo, TestPrefabPanelData>("FirstPanel", _scope)
                 .ToCoroutine(result => first = result);
 
             TestPrefabPanelController second = null;
             yield return _service
-                .OpenAsync<TestPrefabPanelController, UIPrefabPanelConfigDataSo, TestPrefabPanelData>("SecondPanel")
+                .OpenAsync<TestPrefabPanelController, UIPrefabPanelConfigDataSo, TestPrefabPanelData>("SecondPanel", _scope)
                 .ToCoroutine(result => second = result);
 
             Assert.AreSame(second, _service.TopPanel);
@@ -476,7 +573,7 @@ namespace Fang.Framework.UI.Async.Tests
 
             TestPrefabPanelController panel = null;
             yield return _service
-                .OpenAsync<TestPrefabPanelController, UIPrefabPanelConfigDataSo, TestPrefabPanelData>("TestPanel")
+                .OpenAsync<TestPrefabPanelController, UIPrefabPanelConfigDataSo, TestPrefabPanelData>("TestPanel", _scope)
                 .ToCoroutine(result => panel = result);
 
             Assert.IsNull(panel);
@@ -491,7 +588,7 @@ namespace Fang.Framework.UI.Async.Tests
 
             TestPrefabPanelController ugui = null;
             yield return _service
-                .OpenAsync<TestPrefabPanelController, UIPrefabPanelConfigDataSo, TestPrefabPanelData>("PrefabPanel")
+                .OpenAsync<TestPrefabPanelController, UIPrefabPanelConfigDataSo, TestPrefabPanelData>("PrefabPanel", _scope)
                 .ToCoroutine(result => ugui = result);
 
             TestVisualTreePanelController visualTree = null;
@@ -519,13 +616,13 @@ namespace Fang.Framework.UI.Async.Tests
         private UniTask<TestVisualTreePanelController> OpenPanel()
         {
             return _service
-                .OpenAsync<TestVisualTreePanelController, UIVisualTreePanelConfigDataSo, TestPanelData>(_panelConfig);
+                .OpenAsync<TestVisualTreePanelController, UIVisualTreePanelConfigDataSo, TestPanelData>(_panelConfig, _scope);
         }
 
         private UniTask<TestVisualTreePanelController> OpenPanelById(string configId)
         {
             return _service
-                .OpenAsync<TestVisualTreePanelController, UIVisualTreePanelConfigDataSo, TestPanelData>(configId);
+                .OpenAsync<TestVisualTreePanelController, UIVisualTreePanelConfigDataSo, TestPanelData>(configId, _scope);
         }
     }
 }

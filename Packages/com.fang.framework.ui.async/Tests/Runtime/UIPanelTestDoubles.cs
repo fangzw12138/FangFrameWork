@@ -153,6 +153,8 @@ namespace Fang.Framework.UI.Async.Tests
 
         public AsyncScope InjectedScope => Scope;
 
+        public AsyncScope ScopeInsideOpenHook { get; private set; }
+
         public bool? ScopeInjectedInsideOpenHook { get; private set; }
 
         public int OpenCount { get; private set; }
@@ -169,6 +171,7 @@ namespace Fang.Framework.UI.Async.Tests
         protected override UniTask OnOpenAsync()
         {
             OpenCount++;
+            ScopeInsideOpenHook = Scope;
             ScopeInjectedInsideOpenHook = Scope != null;
             return UniTask.CompletedTask;
         }

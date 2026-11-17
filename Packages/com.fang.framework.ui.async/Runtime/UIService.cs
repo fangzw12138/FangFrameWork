@@ -16,6 +16,7 @@ namespace Fang.Framework.UI.Async
 
         private readonly Dictionary<string, UIPanelConfigDataSo> _registeredConfigs = new Dictionary<string, UIPanelConfigDataSo>();
         private readonly Dictionary<string, IUIPanel> _openedPanels = new Dictionary<string, IUIPanel>();
+        private readonly Dictionary<string, AsyncScope> _panelOwners = new Dictionary<string, AsyncScope>();
         private readonly UIPanelStack _stack = new UIPanelStack();
 
         private UIProjectConfigDataSo _projectConfig;
@@ -75,11 +76,18 @@ namespace Fang.Framework.UI.Async
             }
         }
 
-        public async UniTask<TPanel> OpenAsync<TPanel, TConfig, TData>(string configId)
+        public async UniTask<TPanel> OpenAsync<TPanel, TConfig, TData>(
+            string configId,
+            AsyncScope ownerScope)
             where TPanel : UIPanelController<TConfig, TData>
             where TConfig : UIPanelConfigDataSo
             where TData : UIPanelData<TConfig>
         {
+            if (ownerScope == null)
+            {
+                throw new ArgumentNullException(nameof(ownerScope));
+            }
+
             var config = ResolveConfig<TConfig>(configId);
 
             if (config == null)
@@ -87,14 +95,21 @@ namespace Fang.Framework.UI.Async
                 return null;
             }
 
-            return await OpenAsync<TPanel, TConfig, TData>(config);
+            return await OpenAsync<TPanel, TConfig, TData>(config, ownerScope);
         }
 
-        public async UniTask<TPanel> OpenAsync<TPanel, TConfig, TData>(TConfig config)
+        public async UniTask<TPanel> OpenAsync<TPanel, TConfig, TData>(
+            TConfig config,
+            AsyncScope ownerScope)
             where TPanel : UIPanelController<TConfig, TData>
             where TConfig : UIPanelConfigDataSo
             where TData : UIPanelData<TConfig>
         {
+            if (ownerScope == null)
+            {
+                throw new ArgumentNullException(nameof(ownerScope));
+            }
+
             if (_projectConfig == null)
             {
                 Debug.LogError($"{LogTag} UIService is not configured; call Configure(UIProjectConfigDataSo) before opening any panel.");
@@ -130,14 +145,34 @@ namespace Fang.Framework.UI.Async
                 if (!UIPanelStack.IsAlive(opened))
                 {
                     _openedPanels.Remove(config.Id);
+                    _panelOwners.Remove(config.Id);
                 }
                 else if (!(opened is TPanel reused))
                 {
                     Debug.LogError($"{LogTag} Panel config '{config.Id}' is already open as '{opened.GetType().FullName}' and cannot be reopened as '{typeof(TPanel).FullName}'.");
                     return null;
                 }
+                else if (opened.IsOpen)
+                {
+                    if (_panelOwners.TryGetValue(config.Id, out var currentOwner) &&
+                        !ReferenceEquals(currentOwner, ownerScope))
+                    {
+                        Debug.LogWarning(
+                            $"{LogTag} Panel '{config.Id}' is already open under a different owner scope; keeping the original scope.");
+                    }
+
+                    await _stack.PushAsync(reused, config.ClosePreviousOnOpen, config.BlocksInput);
+                    return reused;
+                }
                 else
                 {
+                    if (reused is IAsyncInjectable reusableInjectable)
+                    {
+                        reusableInjectable.Inject(ownerScope);
+                    }
+
+                    _panelOwners[config.Id] = ownerScope;
+
                     await _stack.PushAsync(reused, config.ClosePreviousOnOpen, config.BlocksInput);
                     return reused;
                 }
@@ -155,7 +190,7 @@ namespace Fang.Framework.UI.Async
 
             if (panel is IAsyncInjectable injectable)
             {
-                injectable.Inject(Scope);
+                injectable.Inject(ownerScope);
             }
 
             var data = panel.CreateData(config);
@@ -172,6 +207,7 @@ namespace Fang.Framework.UI.Async
             await panel.InitAsync(data);
 
             _openedPanels[config.Id] = panel;
+            _panelOwners[config.Id] = ownerScope;
 
             await _stack.PushAsync(panel, config.ClosePreviousOnOpen, config.BlocksInput);
             return panel;
@@ -276,6 +312,7 @@ namespace Fang.Framework.UI.Async
             }
 
             _openedPanels.Clear();
+            _panelOwners.Clear();
             _registeredConfigs.Clear();
 
             _projectConfig = null;

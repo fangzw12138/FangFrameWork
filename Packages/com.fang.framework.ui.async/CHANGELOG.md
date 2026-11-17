@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.1.5] - 2026-11-17
+
+### Changed（Breaking）
+
+- `UIService.OpenAsync` 两个重载都必须传入 `AsyncScope ownerScope`，不再默认使用 `UIService.Scope`；传入 `null` 抛 `ArgumentNullException`。
+- 新建面板在 `CreateData` / `InitAsync` 前注入 `ownerScope`；已关闭的缓存面板再次打开时重新注入新的 `ownerScope`，`OnOpenAsync` 读到的是新 scope。
+- 已打开的面板再次打开时保持首次 owner scope，不重新注入；传入不同 scope 时记 `LogWarning` 并复用原面板。
+
+### Added
+
+- `UIService` 内部维护面板 owner scope，面板销毁清理时同步移除。
+
 ## [0.1.4] - 2026-11-16
 
 ### Added

@@ -4,7 +4,9 @@ using System.Text.RegularExpressions;
 using Cysharp.Threading.Tasks;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.TestTools;
+using UnityEngine.UI;
 using UnityEngine.UIElements;
 
 namespace Fang.Framework.UI.Async.Tests
@@ -23,6 +25,8 @@ namespace Fang.Framework.UI.Async.Tests
         private UIProjectConfigDataSo _project;
         private ProbeUiScope _scope;
         private UIService _service;
+        private GameObject _eventSystemHost;
+        private EventSystem _eventSystem;
 
         [UnitySetUp]
         public IEnumerator SetUp()
@@ -39,6 +43,13 @@ namespace Fang.Framework.UI.Async.Tests
         [TearDown]
         public void TearDown()
         {
+            if (_eventSystemHost != null)
+            {
+                UnityEngine.Object.DestroyImmediate(_eventSystemHost);
+                _eventSystemHost = null;
+                _eventSystem = null;
+            }
+
             ProbeScope.DestroyAll();
             TestConfigs.DestroyAll();
         }
@@ -374,6 +385,119 @@ namespace Fang.Framework.UI.Async.Tests
         }
 
         [UnityTest]
+        public IEnumerator Panel_focus_restores_current_nearest_last_and_fallback()
+        {
+            EnsureEventSystem();
+            yield return null;
+
+            var firstConfig = TestConfigs.CreatePrefabPanel(
+                "FocusFirst",
+                "Default",
+                0,
+                false,
+                false,
+                TestConfigs.CreateFocusPrefabTemplate());
+            var secondConfig = TestConfigs.CreatePrefabPanel(
+                "FocusSecond",
+                "Default",
+                10,
+                false,
+                false,
+                TestConfigs.CreateFocusPrefabTemplate());
+            var project = TestConfigs.CreateProject(
+                new[] { _layer },
+                new UIPanelConfigDataSo[] { firstConfig, secondConfig });
+            _service.Configure(project);
+
+            TestFocusPanelController first = null;
+            yield return _service
+                .OpenAsync<TestFocusPanelController, UIPrefabPanelConfigDataSo, TestPrefabPanelData>("FocusFirst", _scope)
+                .ToCoroutine(result => first = result);
+
+            Assert.IsNotNull(first);
+            Assert.IsNotNull(_eventSystem, "The test EventSystem is missing.");
+            Assert.IsNotNull(first.First, "The panel fallback target is missing.");
+            Assert.AreSame(first.First.gameObject, _eventSystem.currentSelectedGameObject,
+                "Opening a panel must use the panel's fallback target.");
+
+            _eventSystem.SetSelectedGameObject(first.Second.gameObject);
+            _service.RestoreFocus();
+            Assert.AreSame(first.Second.gameObject, _eventSystem.currentSelectedGameObject,
+                "A valid current target must be kept.");
+
+            _eventSystem.SetSelectedGameObject(null);
+            _service.RestoreFocus();
+            Assert.AreSame(first.Second.gameObject, _eventSystem.currentSelectedGameObject,
+                "The panel's last target must be restored after clearing the selection.");
+
+            _eventSystem.SetSelectedGameObject(first.Helper.gameObject);
+            _service.RestoreFocus();
+            Assert.AreSame(first.First.gameObject, _eventSystem.currentSelectedGameObject,
+                "A helper control must resolve to the nearest FocusTarget inside the panel.");
+
+            TestFocusPanelController second = null;
+            yield return _service
+                .OpenAsync<TestFocusPanelController, UIPrefabPanelConfigDataSo, TestPrefabPanelData>("FocusSecond", _scope)
+                .ToCoroutine(result => second = result);
+
+            Assert.IsNotNull(second);
+            Assert.AreSame(second.First.gameObject, _eventSystem.currentSelectedGameObject,
+                "A panel without a current or last target must use its fallback target.");
+        }
+
+        [UnityTest]
+        public IEnumerator Focused_panel_keeps_navigation_and_other_panels_disable_it()
+        {
+            EnsureEventSystem();
+            yield return null;
+
+            var firstConfig = TestConfigs.CreatePrefabPanel(
+                "FocusFirst",
+                "Default",
+                0,
+                false,
+                false,
+                TestConfigs.CreateFocusPrefabTemplate());
+            var secondConfig = TestConfigs.CreatePrefabPanel(
+                "FocusSecond",
+                "Default",
+                10,
+                false,
+                false,
+                TestConfigs.CreateFocusPrefabTemplate());
+            var project = TestConfigs.CreateProject(
+                new[] { _layer },
+                new UIPanelConfigDataSo[] { firstConfig, secondConfig });
+            _service.Configure(project);
+
+            TestFocusPanelController first = null;
+            yield return _service
+                .OpenAsync<TestFocusPanelController, UIPrefabPanelConfigDataSo, TestPrefabPanelData>("FocusFirst", _scope)
+                .ToCoroutine(result => first = result);
+
+            TestFocusPanelController second = null;
+            yield return _service
+                .OpenAsync<TestFocusPanelController, UIPrefabPanelConfigDataSo, TestPrefabPanelData>("FocusSecond", _scope)
+                .ToCoroutine(result => second = result);
+
+            Assert.IsNotNull(first);
+            Assert.IsNotNull(second);
+            Assert.AreEqual(Navigation.Mode.None, first.First.navigation.mode,
+                "Background panels must not participate in directional navigation.");
+            Assert.AreEqual(Navigation.Mode.Vertical, second.First.navigation.mode,
+                "The focused panel must keep its navigation.");
+
+            var closed = false;
+            yield return _service.CloseAsync("FocusSecond").ToCoroutine(result => closed = result);
+
+            Assert.IsTrue(closed);
+            Assert.AreEqual(Navigation.Mode.Vertical, first.First.navigation.mode,
+                "Returning focus must restore the previous panel's navigation.");
+            Assert.AreEqual(Navigation.Mode.None, second.First.navigation.mode,
+                "The unfocused panel must keep navigation disabled.");
+        }
+
+        [UnityTest]
         public IEnumerator TopPanel_returns_the_last_pushed_panel()
         {
             var firstConfig = TestConfigs.CreatePrefabPanel("FirstPanel", "Default", 0, false, false);
@@ -617,6 +741,20 @@ namespace Fang.Framework.UI.Async.Tests
         {
             return _service
                 .OpenAsync<TestVisualTreePanelController, UIVisualTreePanelConfigDataSo, TestPanelData>(_panelConfig, _scope);
+        }
+
+        private void EnsureEventSystem()
+        {
+            if (_eventSystem != null)
+            {
+                return;
+            }
+
+            _eventSystemHost = new GameObject(
+                "EventSystem",
+                typeof(EventSystem),
+                typeof(StandaloneInputModule));
+            _eventSystem = _eventSystemHost.GetComponent<EventSystem>();
         }
 
         private UniTask<TestVisualTreePanelController> OpenPanelById(string configId)

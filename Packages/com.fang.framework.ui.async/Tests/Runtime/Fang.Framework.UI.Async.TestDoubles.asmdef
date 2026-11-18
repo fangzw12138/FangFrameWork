@@ -5,7 +5,8 @@
     "Fang.Framework",
     "Fang.Framework.Async",
     "Fang.Framework.UI.Async",
-    "UniTask"
+    "UniTask",
+    "UnityEngine.UI"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

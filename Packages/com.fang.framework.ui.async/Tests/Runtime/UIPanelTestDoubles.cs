@@ -4,6 +4,7 @@ using Cysharp.Threading.Tasks;
 using Fang.Framework.Async;
 using UnityEngine;
 using UnityEngine.UIElements;
+using Button = UnityEngine.UI.Button;
 
 namespace Fang.Framework.UI.Async.Tests
 {
@@ -135,6 +136,43 @@ namespace Fang.Framework.UI.Async.Tests
         {
             DisposeCount++;
             return UniTask.CompletedTask;
+        }
+    }
+
+    public sealed class TestFocusPanelController : UIPanelController<UIPrefabPanelConfigDataSo, TestPrefabPanelData>
+    {
+        [SerializeField] private FocusTarget _first;
+        [SerializeField] private FocusTarget _second;
+        [SerializeField] private Button _helper;
+        [SerializeField] private FocusTarget _fallback;
+
+        public FocusTarget First => _first;
+
+        public FocusTarget Second => _second;
+
+        public Button Helper => _helper;
+
+        public FocusTarget Fallback => _fallback;
+
+        public int FocusCount { get; private set; }
+
+        public void Bind(FocusTarget first, FocusTarget second, Button helper, FocusTarget fallback)
+        {
+            _first = first;
+            _second = second;
+            _helper = helper;
+            _fallback = fallback;
+        }
+
+        public override TestPrefabPanelData CreateData(UIPrefabPanelConfigDataSo config)
+        {
+            return new TestPrefabPanelData(config);
+        }
+
+        protected override void OnFocus()
+        {
+            FocusCount++;
+            RestoreFocus(Fallback);
         }
     }
 

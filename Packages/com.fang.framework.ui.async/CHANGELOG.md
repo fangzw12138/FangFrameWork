@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.1.6] - 2026-11-18
+
+### Added
+
+- `FocusTarget`：从游戏侧移入框架包（保留原 GUID），统一由 `EventSystem` 驱动选中，提供 `Selected` / `Deselected` / `Activated` 实例事件与 `AnySelected` 静态事件。
+- `FocusTarget.SetNavigationEnabled`：面板失焦时临时关闭方向导航，重新聚焦时恢复原 `Navigation`。
+- `UIPanelController` 负责自己的焦点状态：维护 `_lastFocus`，`OnEnable` / `Focus` 启用本面板导航，`OnDisable` / `Blur` 关闭本面板导航。
+- `UIPanelController.RestoreFocus(fallback)`：当前有效目标 → 面板内层级距离最近的 `FocusTarget` → `_lastFocus` → `fallback`，不依赖 `UIService`。
+- `UIPanelController.CanFocus`：面板可声明自己不可聚焦（HUD 等），不可聚焦时 `Focus()` 不选目标。
+- `UIPanelController.OpenAsync` 清除本面板 `_lastFocus`，保证重开回到默认行。
+
 ## [0.1.5] - 2026-11-17
 
 ### Changed（Breaking）

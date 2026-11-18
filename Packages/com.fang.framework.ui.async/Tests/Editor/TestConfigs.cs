@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
+using Button = UnityEngine.UI.Button;
+using Navigation = UnityEngine.UI.Navigation;
 
 namespace Fang.Framework.UI.Async.Tests
 {
@@ -65,14 +67,33 @@ namespace Fang.Framework.UI.Async.Tests
             bool withPrefab = true,
             bool closeOnBack = false)
         {
+            return CreatePrefabPanel(
+                id,
+                layerId,
+                sortOrder,
+                closePreviousOnOpen,
+                blocksInput,
+                withPrefab ? CreatePrefabTemplate() : null,
+                closeOnBack);
+        }
+
+        public static UIPrefabPanelConfigDataSo CreatePrefabPanel(
+            string id,
+            string layerId,
+            int sortOrder,
+            bool closePreviousOnOpen,
+            bool blocksInput,
+            GameObject prefab,
+            bool closeOnBack = false)
+        {
             var config = Track(ScriptableObject.CreateInstance<UIPrefabPanelConfigDataSo>());
             var serialized = new SerializedObject(config);
             serialized.FindProperty("_id").stringValue = id;
             ApplyPanelFields(serialized, layerId, sortOrder, closePreviousOnOpen, blocksInput, closeOnBack);
 
-            if (withPrefab)
+            if (prefab != null)
             {
-                serialized.FindProperty("_prefab").objectReferenceValue = CreatePrefabTemplate();
+                serialized.FindProperty("_prefab").objectReferenceValue = prefab;
             }
 
             serialized.ApplyModifiedPropertiesWithoutUndo();
@@ -85,6 +106,40 @@ namespace Fang.Framework.UI.Async.Tests
             template.AddComponent<TestPrefabPanelController>();
             Templates.Add(template);
             return template;
+        }
+
+        public static GameObject CreateFocusPrefabTemplate()
+        {
+            var template = new GameObject("UIAsyncTestFocusPanel", typeof(RectTransform));
+            var controller = template.AddComponent<TestFocusPanelController>();
+
+            var firstGroup = new GameObject("FirstGroup", typeof(RectTransform));
+            firstGroup.transform.SetParent(template.transform, false);
+            var first = CreateFocusTarget("Row", firstGroup.transform);
+
+            var value = new GameObject("Value", typeof(RectTransform));
+            value.transform.SetParent(firstGroup.transform, false);
+            var helper = new GameObject("Helper", typeof(RectTransform), typeof(Button));
+            helper.transform.SetParent(value.transform, false);
+            var helperButton = helper.GetComponent<Button>();
+            helperButton.navigation = new Navigation { mode = Navigation.Mode.None };
+
+            var secondGroup = new GameObject("SecondGroup", typeof(RectTransform));
+            secondGroup.transform.SetParent(template.transform, false);
+            var second = CreateFocusTarget("Row", secondGroup.transform);
+
+            controller.Bind(first, second, helperButton, first);
+            Templates.Add(template);
+            return template;
+        }
+
+        private static FocusTarget CreateFocusTarget(string name, Transform parent)
+        {
+            var host = new GameObject(name, typeof(RectTransform));
+            host.transform.SetParent(parent, false);
+            var target = host.AddComponent<FocusTarget>();
+            target.navigation = new Navigation { mode = Navigation.Mode.Vertical };
+            return target;
         }
 
         public static UIProjectConfigDataSo CreateProject(UILayerConfigDataSo[] layers, UIPanelConfigDataSo[] panels)
